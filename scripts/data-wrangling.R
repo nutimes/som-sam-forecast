@@ -37,13 +37,13 @@ month_admit <- month_admit |>
 
 ## ---- Create a hierarchical TS of admission by livelihood systems ------------
 
-month_admit |>
+hts <- month_admit |>
   summarise_admissions(
     .group = TRUE,
     time = "M"
   ) |>
   aggregate_key(
-    .spec = lsystems / region,
+    .spec = lsystems,
     admissions = sum(admissions)
   )
 ############################## End of workflow #################################
