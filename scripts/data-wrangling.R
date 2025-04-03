@@ -10,14 +10,14 @@ month_admit <- admissions |>
     cols = !c(region, district, lsystems),
     names_to = "time",
     values_to = "admissions"
-  ) |> 
+  ) |>
   mutate(
     time = gsub(pattern = "^X", "", x = time),
-    time = gsub(pattern = "\\.", "/", x = time), 
-    Monthly = ymd(as.Date(time, format = "%d/%m/%Y")) |> 
+    time = gsub(pattern = "\\.", "/", x = time),
+    Monthly = ymd(as.Date(time, format = "%d/%m/%Y")) |>
       yearmonth(time)
-  ) |> 
-  relocate(Monthly, .before = admissions) |> 
+  ) |>
+  relocate(Monthly, .before = admissions) |>
   select(-time)
 
 
@@ -37,14 +37,13 @@ month_admit <- month_admit |>
 
 ## ---- Create a hierarchical TS of admission by livelihood systems ------------
 
-month_admit |> 
+month_admit |>
   summarise_admissions(
     .group = TRUE,
     time = "M"
-  ) |> 
+  ) |>
   aggregate_key(
-    .spec = lsystems / region, 
+    .spec = lsystems / region,
     admissions = sum(admissions)
   )
-
 ############################## End of workflow #################################
