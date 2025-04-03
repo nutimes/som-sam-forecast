@@ -28,3 +28,6 @@ source("scripts/data-wrangling.R")
 
 ## ---- Exploratory Data Analysis ----------------------------------------------
 source("scripts/exploratory-data-analysis.R")
+
+## ---- Decomposition ----------------------------------------------------------
+source("scripts/decomposition.R")
