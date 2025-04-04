@@ -6,7 +6,7 @@
 ## ---- Read data --------------------------------------------------------------
 
 ### --------------------------------------- Decrypt and read admission data ----
-admissions <- decrypt(
+input_data <- decrypt(
   expr = read.csv("data-raw/admissions.csv"),
   key = secret_key
 )

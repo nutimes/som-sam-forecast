@@ -31,3 +31,6 @@ source("scripts/exploratory-data-analysis.R")
 
 ## ---- Decomposition ----------------------------------------------------------
 source("scripts/decomposition.R")
+
+## ---- Check if TS is stationary and apply differencing -----------------------
+source("scripts/stationarity-and-differencing.R")

@@ -3,15 +3,15 @@
 ################################################################################
 
 ## ---- Time plot --------------------------------------------------------------
-hts |> 
-  autoplot(.vars = admissions) + 
+grouped_admissions |> 
+  autoplot(.vars = sam_admissions) + 
   facet_grid(vars(lsystems), scales = "free_y") +
   theme(legend.position = "none")
 
 ## ---- Seasonal plot ----------------------------------------------------------
 gg_season(
-  data = hts,
-  y = admissions,
+  data = grouped_admissions,
+  y = sam_admissions,
   period = 12
 )
 

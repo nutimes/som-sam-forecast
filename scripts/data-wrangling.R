@@ -5,11 +5,11 @@
 
 ## ---- Tidy the data ----------------------------------------------------------
 
-month_admit <- admissions |>
+admissions <- input_data |>
   pivot_longer(
     cols = !c(region, district, lsystems),
     names_to = "time",
-    values_to = "admissions"
+    values_to = "sam_admissions"
   ) |>
   mutate(
     time = gsub(pattern = "^X", "", x = time),
@@ -17,7 +17,7 @@ month_admit <- admissions |>
     Monthly = ymd(as.Date(time, format = "%d/%m/%Y")) |>
       yearmonth(time)
   ) |>
-  relocate(Monthly, .before = admissions) |>
+  relocate(Monthly, .before = sam_admissions) |>
   select(-time)
 
 
@@ -32,18 +32,21 @@ list <- c(
 
 ### --------------------------------------------------- Apply the exclusion ----
 
-month_admit <- month_admit |>
+admissions <- admissions |>
   filter(!(district %in% list))
 
-## ---- Create a hierarchical TS of admission by livelihood systems ------------
+## ---- Summarise admissions ---------------------------------------------------
 
-hts <- month_admit |>
+grouped_admissions <- admissions |>
   summarise_admissions(
     .group = TRUE,
     time = "M"
-  ) |>
-  aggregate_key(
-    .spec = lsystems,
-    admissions = sum(admissions)
   )
+
+ungrouped_admissions <- admissions |>
+    summarise_admissions(
+      .group = FALSE,
+      time = "M"
+    )
+
 ############################## End of workflow #################################
