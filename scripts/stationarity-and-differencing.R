@@ -1,5 +1,5 @@
 ################################################################################
-#                       STATIONARITY AND DIFFERENCIATION                       #
+#                     ENFORCING TIME SERIES STATIONARITY                       #
 ################################################################################
 
 ## ---- ACF plot of the original admissions ------------------------------------
@@ -66,5 +66,31 @@ diff_ts |>
 ### ------------------------------ Test if the time series is a white noise ----
 diff_ts |> 
   features(.var = .admissions, ljung_box, lag = 10)
+
+### ----------------------------------- Plot Partial Autocorrelation (PACF) ----
+
+#### Pastoral livelihood system ----
+diff_ts |> 
+  filter(lsystems == "Pastoral") |> 
+  gg_tsdisplay(y = .admissions, plot_type = "partial", lag_max = 36) +
+  labs(title = "Pastoral livelihood system")
+
+#### Agropastoral livelihood system ----
+diff_ts |> 
+  filter(lsystems == "Agropastoral") |> 
+  gg_tsdisplay(y = .admissions, plot_type = "partial", lag_max = 36) +
+    labs(title = "Agropastoral livelihood system")
+
+#### Riverine livelihood system ----
+diff_ts |> 
+  filter(lsystems == "Riverine") |> 
+  gg_tsdisplay(y = .admissions, plot_type = "partial", lag_max = 36) +
+    labs(title = "Riverine livelihood system")
+
+#### Urban/IDPs livelihood system ----
+diff_ts |> 
+  filter(lsystems == "Urban/IDPs") |> 
+  gg_tsdisplay(y = .admissions, plot_type = "partial", lag_max = 36) +
+    labs(title = "Urban/IDPs livelihood system")
 
 ############################## End of workflow #################################
