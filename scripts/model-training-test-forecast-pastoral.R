@@ -1,36 +1,87 @@
 ################################################################################
-#                TRAINING AND TEST - PASTORAL LIVELIHOOD SYSTEM                #
+#          TRAIN, TEST MODEL AND FORECAST - PASTORAL LIVELIHOOD SYSTEM         #
 ################################################################################
 
 
-## ---- Split 80% training, 20% testing ----------------------------------------
+## ---- Check assumptions for stationarity and select candidate models ---------
 
-pasto_split <- grouped_admissions |>
+### ----------------------------------- ACF plot of the original admissions ----
+
+grouped_admissions |>
+  filter(lsystems == "Pastoral") |>
+  ACF(
+    y = sam_admissions,
+    type = "correlation",
+    lag_max = 36
+  ) |>
+  autoplot() +
+  labs(
+    title = "First order autocorrelation by livelihood system",
+    subtitle = "Time series show non-stationarity: it has a trend and seasonal pattern",
+    y = "Autocorrelation coeficient"
+  ) +
+  theme(
+    plot.subtitle = element_text(colour = "#706E6D"),
+    plot.caption = element_text(colour = "#706E6D"),
+    axis.title.y = element_text(size = 10, margin = margin(r = 5)),
+    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+  )
+
+## ------------------------ Apply seasonal differencing using training data ----
+
+pasto_train_data |>
   mutate(
     .admissions = do.call(
-      what = row_wise_box_cox,
-      args = list(admissions = sam_admissions, lsystems = lsystems)
-    )
+      what = difference,
+      args = list(x = .admissions, lag = 12, differences = 1)
+    ) |> difference(1)
   ) |>
-  filter(lsystems == "Pastoral") |>
-  initial_time_split(prop = 0.839)
+  autoplot(.vars = .admissions) +
+  labs(
+    title = "Seasonal differenced time series",
+    subtitle = "It shows constant variance across the series"
+  ) +
+  theme(
+    plot.caption = element_text(colour = "#706E6D"),
+    axis.title.y = element_text(size = 10, margin = margin(r = 5)),
+    plot.subtitle = element_text(colour = "#706E6D")
+  )
+
+### ---------------------------------------------------- ACF and PACF plots ----
+
+pasto_train_data |>
+  mutate(
+    .admissions = do.call(
+      what = difference,
+      args = list(x = .admissions, lag = 12, differences = 1)
+    ) |> difference(1)
+  ) |>
+  gg_tsdisplay(y = .admissions, plot_type = "partial", lag_max = 36) +
+  labs(title = "Pastoral livelihood system")
+
+# Candidate models selected based on ACF (MA) and PACF (AR):
+# ARIMA(0,1,1)(0,1,1)[12] and ARIMA(1,1,0)(1,1,0)[12]
+
+### ------------------------------ Test if the time series is a white noise ----
+
+pasto_train_data |>
+  mutate(
+    .admissions = do.call(
+      what = difference,
+      args = list(x = .admissions, lag = 12, differences = 1)
+    ) |> difference(1)
+  ) |>
+  features(.var = .admissions, ljung_box, lag = 10)
 
 
-### ------------------------------------------ Extract training and testing ----
-
-pasto_train_data <- training(pasto_split)
-pasto_test_data <- testing(pasto_split)
-
-
-## ---- Fit a SARIMA model -----------------------------------------------------
+## ---- Fit a Seasonal ARIMA model ---------------------------------------------
 
 ### -------------------------------------------- Pastoral Livelihood system ----
 
 pasto_fit <- pasto_train_data |>
   model(
     arima010011 = ARIMA(formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 1)),
-    arima010110 = ARIMA(formula = .admissions ~ pdq(1, 1, 0) + PDQ(1, 1, 0)),
-    snaive = SNAIVE(.admissions)
+    arima010110 = ARIMA(formula = .admissions ~ pdq(1, 1, 0) + PDQ(1, 1, 0))
   )
 
 
@@ -38,7 +89,7 @@ pasto_fit <- pasto_train_data |>
 
 pasto_fit |>
   pivot_longer(
-    cols = 2:4,
+    cols = 2:3,
     names_to = "model_name",
     values_to = "orders"
   )
@@ -65,6 +116,7 @@ augment(pasto_fit) |>
   features(.innov, ljung_box, lag = 36, def = 1)
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
+
 pasto_forecast <- pasto_fit |>
   forecast(h = nrow(pasto_test_data))
 
@@ -92,7 +144,7 @@ pasto_forecast <- pasto_fit |>
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
 
-pasto_forecast_reverse <- pasto_forecast |>
+pasto_forecast <- pasto_forecast |>
   hilo(level = c(80, 95)) |>
   unpack_hilo("80%") |>
   unpack_hilo("95%") |>
@@ -110,7 +162,7 @@ pasto_forecast_reverse <- pasto_forecast |>
 
 ## ---- Visualize forecasts ----------------------------------------------------
 
-pasto_forecast_reverse |>
+pasto_forecast |>
   filter(.model == "arima010011") |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
