@@ -1,36 +1,11 @@
 ################################################################################
-
+#                          DECOMPOSITE TIME SERIES                             # 
 ################################################################################
-
-
 
 ## ---- Decomposition at National level ----------------------------------------
 
-### ------------------------------------------------ Box-Cox transformation ----
-
-#### Get lambda ----
-lambda_national <- ungrouped_admissions |> 
-  features(
-    .var = sam_admissions,
-    features = guerrero
-  ) |>
-  pull(lambda_guerrero)
-
-#### Visualize the transformation ----
-ungrouped_admissions |>
-  autoplot(
-    box_cox(
-      x = sam_admissions,
-      lambda = lambda_national
-    )
-  )
-
-
-### --------------------------------------------------------- Decomposition ----
-
 #### Get components ----
 cmpnts_national <- ungrouped_admissions |> 
-  mutate(sam_admissions = box_cox(x = sam_admissions, lambda = lambda_national)) |>
   model(
     STL(sam_admissions ~ trend(window = 9) + season(window = 7))
   ) |>
@@ -105,96 +80,11 @@ seasonal_cmpnt_national_a2022 <- cmpnts_national |>
 
 ## ---- Decomposition by Livelihood systems ------------------------------------
 
-### ------------------------------------------------ Box-Cox transformation ----
-
-#### Get lambda for livelihood systems ----
-##### For Pastoral ----
-lambda_pastoral <- grouped_admissions |>
-  filter(lsystems == "Pastoral") |>
-  features(
-    .var = sam_admissions,
-    features = guerrero
-  ) |>
-  pull(lambda_guerrero)
-
-##### For Agropastoral ----
-lambda_agropastoral <- grouped_admissions |>
-  filter(lsystems == "Agropastoral") |>
-  features(
-    .var = sam_admissions,
-    features = guerrero
-  ) |>
-  pull(lambda_guerrero)
-
-##### For Riverine ----
-lambda_riverine <- grouped_admissions |>
-  filter(lsystems == "Riverine") |>
-  features(
-    .var = sam_admissions,
-    features = guerrero
-  ) |>
-  pull(lambda_guerrero)
-
-##### For Urban/IDP's ----
-lambda_urban_idps <- grouped_admissions |>
-  filter(lsystems == "Urban/IDPs") |>
-  features(
-    .var = sam_admissions,
-    features = guerrero
-  ) |>
-  pull(lambda_guerrero)
-
-
-### ------------------------ Visualize the time series after transformation ----
-
-#### Pastoral ----
-grouped_admissions |>
-  filter(lsystems == "Pastoral") |>
-  autoplot(
-    box_cox(
-      x = sam_admissions,
-      lambda = lambda_pastoral
-    )
-  )
-
-#### Agropastoral ----
-grouped_admissions |>
-  filter(lsystems == "Agropastoral") |>
-  autoplot(
-    box_cox(
-      x = sam_admissions,
-      lambda = lambda_agropastoral
-    )
-  )
-
-#### Riverine ----
-grouped_admissions |>
-  filter(lsystems == "Riverine") |>
-  autoplot(
-    box_cox(
-      x = sam_admissions,
-      lambda = lambda_riverine
-    )
-  )
-
-#### Urban/IDPs ----
-grouped_admissions |>
-  filter(lsystems == "Urban/IDPs") |>
-  autoplot(
-    box_cox(
-      x = sam_admissions,
-      lambda = lambda_urban_idps
-    )
-  )
-
-
-## ---- Decomposition ----------------------------------------------------------
 ### -------------------------------------------- Pastoral livelihood system ----
 
 #### Get components ----
 cmpnts_pastoral <- grouped_admissions |>
   filter(lsystems == "Pastoral") |>
-  mutate(sam_admissions = box_cox(x = sam_admissions, lambda = lambda_pastoral)) |>
   model(
     STL(sam_admissions ~ trend(window = 9) + season(window = 7))
   ) |>
@@ -271,7 +161,6 @@ seasonal_cmpnt_pastoral_a2022 <- cmpnts_pastoral |>
 #### Get components ----
 cmpnts_agropastoral <- grouped_admissions |>
   filter(lsystems == "Agropastoral") |>
-  mutate(sam_admissions = box_cox(x = sam_admissions, lambda = lambda_agropastoral)) |>
   model(
     STL(sam_admissions ~ trend(window = 9) + season(window = 7))
   ) |>
@@ -346,7 +235,6 @@ seasonal_cmpnt_agropastoral_a2022 <- cmpnts_agropastoral |>
 #### Get components ----
 cmpnts_riverine <- grouped_admissions |>
   filter(lsystems == "Riverine") |>
-  mutate(sam_admissions = box_cox(x = sam_admissions, lambda = lambda_riverine)) |>
   model(
     STL(sam_admissions ~ trend(window = 9) + season(window = 7))
   ) |>
@@ -422,7 +310,6 @@ seasonal_cmpnt_riverine_a2022 <- cmpnts_riverine |>
 #### Get component ----
 cmpnts_urban_idps <- grouped_admissions |>
   filter(lsystems == "Urban/IDPs") |>
-  mutate(sam_admissions = box_cox(x = sam_admissions, lambda = lambda_urban_idps)) |>
   model(
     STL(sam_admissions ~ trend(window = 9) + season(window = 7))
   ) |>
