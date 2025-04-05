@@ -34,3 +34,6 @@ source("scripts/decomposition.R")
 
 ## ---- Check if TS is stationary and apply differencing -----------------------
 source("scripts/stationarity-and-differencing.R")
+
+## ---- Forecasts --------------------------------------------------------------
+source("scripts/training-test-forecast-pastoral.R")
