@@ -80,8 +80,15 @@ pasto_train_data |>
 
 pasto_fit <- pasto_train_data |>
   model(
-    arima010011 = ARIMA(formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 1)),
-    arima010110 = ARIMA(formula = .admissions ~ pdq(1, 1, 0) + PDQ(1, 1, 0))
+    sets = ETS(
+      formula = .admissions ~ error("A") + trend("A") + season("A")
+    ),
+    arima010011 = ARIMA(
+      formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 1)
+    ),
+    arima010110 = ARIMA(
+      formula = .admissions ~ pdq(1, 1, 0) + PDQ(1, 1, 0)
+    )
   )
 
 
@@ -89,7 +96,7 @@ pasto_fit <- pasto_train_data |>
 
 pasto_fit |>
   pivot_longer(
-    cols = 2:3,
+    cols = 2:4,
     names_to = "model_name",
     values_to = "orders"
   )
@@ -163,7 +170,6 @@ pasto_forecast <- pasto_forecast |>
 ## ---- Visualize forecasts ----------------------------------------------------
 
 pasto_forecast |>
-  filter(.model == "arima010011") |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
     names_to = "interval",
