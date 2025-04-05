@@ -13,6 +13,7 @@ library(fable)
 library(fabletools)
 library(sf)
 library(cyphr)
+library(rsample)
 
 ## ---- Retrieve secret key ----------------------------------------------------
 secret_key <- data_key(".", Sys.getenv("path_secret_key"))
@@ -32,8 +33,8 @@ source("scripts/exploratory-data-analysis.R")
 ## ---- Decomposition ----------------------------------------------------------
 source("scripts/decomposition.R")
 
-## ---- Check if TS is stationary and apply differencing -----------------------
-source("scripts/stationarity-and-differencing.R")
+## ---- Split input data into training and test set ----------------------------
+source("scripts/split-training-test-data.R")
 
 ## ---- Forecasts --------------------------------------------------------------
-source("scripts/training-test-forecast-pastoral.R")
+source("scripts/arima-training-test-forecast-pastoral.R")
