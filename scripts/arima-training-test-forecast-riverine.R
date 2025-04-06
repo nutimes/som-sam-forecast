@@ -135,3 +135,11 @@ riverine_fit |>
 riverine_forecast |>
   filter(.model == "arima110010") |>
   accuracy(riverine_test_data)
+
+
+## ---- Forecast future admissions cases into program --------------------------
+
+riverine_forecast <- riverine_fit |>
+  forecast(h = 6) |>
+  filter(.model == "arima110010")
+
