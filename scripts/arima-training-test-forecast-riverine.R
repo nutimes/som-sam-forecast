@@ -160,3 +160,62 @@ riverine_forecast <- riverine_forecast |>
       .names = "{.col}"
     )
   )
+
+
+## ---- Visualize forecasts ----------------------------------------------------
+
+### ------------------------------------------------------------- Tidy data ----
+
+riverine_forecast <- riverine_forecast |>
+  pivot_longer(
+    cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
+    names_to = "interval",
+    values_to = "value"
+  ) |>
+  separate(
+    col = interval,
+    into = c("level", "bound"),
+    sep = "_"
+  ) |>
+  pivot_wider(
+    names_from = bound,
+    values_from = value
+  )
+
+
+### ------------------------------------------------------ Plot forecasts ----
+
+riverine_forecast |>
+  ggplot() +
+  geom_ribbon(
+    aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
+    alpha = 0.5
+  ) +
+  geom_line(
+    aes(x = Monthly, y = mean_inv),
+    color = "blue", alpha = 0.6
+  ) +
+  geom_line(
+    data = riverine_train_data,
+    aes(x = Monthly, y = sam_admissions),
+    color = "black"
+  ) +
+  scale_fill_manual(
+    name = "Confidence Interval",
+    values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
+  ) +
+  labs(
+    title = "Forecasted SAM admissions into the program in the riverine livelihood systems",
+    subtitle = "Time horizon: from January to June 2025",
+    y = "Number of cases",
+    x = "Monthly"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D"),
+    axis.title.y = element_text(size = 10, margin = margin(r = 5)),
+    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+  )
+
+################################ End of workflow ###############################
