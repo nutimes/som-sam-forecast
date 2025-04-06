@@ -1,5 +1,5 @@
 ################################################################################
-#       TRAIN, TEST MODEL AND FORECAST - AGROPASTORAL LIVELIHOOD SYSTEM        #
+#       TRAIN, TEST MODEL AND FORECAST - RIVERINE LIVELIHOOD SYSTEM        #
 ################################################################################
 
 
@@ -9,7 +9,7 @@
 
 
 grouped_admissions |>
-  filter(lsystems == "Agropastoral") |>
+  filter(lsystems == "Riverine") |>
   ACF(
     y = sam_admissions,
     type = "correlation",
@@ -28,9 +28,10 @@ grouped_admissions |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
+
 ### --------------------- Apply seasonal differencing using training dataset ---
 
-agropasto_train_data |>
+riverine_train_data |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -40,7 +41,7 @@ agropasto_train_data |>
   autoplot(.vars = .admissions) +
   labs(
     title = "Seasonal differenced time serie",
-    subtitle = "It shows constant variance across the series"
+    subtitle = "It shows a constant variance across the series"
   ) +
   theme(
     plot.caption = element_text(colour = "#706E6D"),
@@ -51,7 +52,7 @@ agropasto_train_data |>
 
 ### ---------------------------------------------------- ACF and PACF plots ----
 
-agropasto_train_data |>
+riverine_train_data |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -59,14 +60,15 @@ agropasto_train_data |>
     ) |> difference(1)
   ) |>
   gg_tsdisplay(y = .admissions, plot_type = "partial", lag_max = 36) +
-  labs(title = "Agropastoral livelihood system")
+  labs(title = "Riverine livelihood system")
 
 # Candidate models selected based on ACF (MA) and PACF (AR):
-# ARIMA(0,1,0)(0,1,0)[12]
+# ARIMA(0,1,1)(0,1,2)[12] or ARIMA(1,1,0)(0,1,0)
+
 
 ### ------------------------------ Test if the time series is a white noise ----
 
-agropasto_train_data |>
+riverine_train_data |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -78,81 +80,82 @@ agropasto_train_data |>
 
 ## ---- Fit a Seasonal ARIMA model ---------------------------------------------
 
-agropasto_fit <- agropasto_train_data |>
+riverine_fit <- riverine_train_data |>
   model(
     sets = ETS(
       formula = .admissions ~ error("A") + trend("Ad") + season("A")
     ),
-    arima010010 = ARIMA(
-      formula = .admissions ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
+    arima011010 = ARIMA(
+      formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 0)
+    ),
+    arima110010 = ARIMA(
+      formula = .admissions ~ pdq(1, 1, 0) + PDQ(0, 1, 0)
     ),
     auto = ARIMA(
       formula = .admissions, stepwise = FALSE, approximation = FALSE
     )
   )
 
-
 ### ----------------------- Identify the best model-fit amongst the others -----
 
-glance(agropasto_fit) |>
+glance(riverine_fit) |>
   arrange(AICc) |>
   select(.model:BIC)
 
-# .model arima010011 had the lowest AICc - best model.
+# .model arima110010 had the lowest AICc - best model.
 
 ### -------------------------- Diganose residuals (white noise?) using plot ----
 
-agropasto_fit |>
-  select(auto) |>
+riverine_fit |>
+  select(arima110010) |>
   gg_tsresiduals(lag = 36)
 
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
-augment(agropasto_fit) |>
-  filter(.model == "auto") |>
+augment(riverine_fit) |>
+  filter(.model == "arima110010") |>
   features(.innov, ljung_box, lag = 36, def = 1)
-
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-agropasto_forecast <- agropasto_fit |>
-  forecast(h = nrow(agropasto_test_data))
+riverine_forecast <- riverine_fit |>
+  forecast(h = nrow(riverine_test_data))
 
 
 ### ------------------------------------ Evaluate in-sample forecast errors ----
 
-agropasto_fit |>
-  select(auto) |>
+riverine_fit |>
+  select(arima110010) |>
   accuracy()
 
 
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
-agropasto_forecast |>
-  filter(.model == "auto") |>
-  accuracy(agropasto_test_data)
+riverine_forecast |>
+  filter(.model == "arima110010") |>
+  accuracy(riverine_test_data)
 
 
 ## ---- Forecast future admissions cases into program --------------------------
 
-agropasto_forecast <- agropasto_fit |>
+riverine_forecast <- riverine_fit |>
   forecast(h = 6) |>
-  filter(.model == "auto")
+  filter(.model == "arima110010")
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
 
-agropasto_forecast <- agropasto_forecast |>
+riverine_forecast <- riverine_forecast |>
   hilo(level = c(80, 95)) |>
   unpack_hilo("80%") |>
   unpack_hilo("95%") |>
   mutate(
-    mean_inv = inv_box_cox(.mean, lambda_agropastoral),
+    mean_inv = inv_box_cox(.mean, lambda_riverine),
     across(ends_with(c("_lower", "_upper")),
       ~ inv_box_cox(
         .x,
-        lambda = lambda_agropastoral
+        lambda = lambda_riverine
       ),
       .names = "{.col}"
     )
@@ -163,7 +166,7 @@ agropasto_forecast <- agropasto_forecast |>
 
 ### ------------------------------------------------------------- Tidy data ----
 
-agropasto_forecast <- agropasto_forecast |>
+riverine_forecast <- riverine_forecast |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
     names_to = "interval",
@@ -182,7 +185,7 @@ agropasto_forecast <- agropasto_forecast |>
 
 ### ------------------------------------------------------ Plot forecasts ----
 
-agropasto_forecast |>
+riverine_forecast |>
   ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
@@ -193,7 +196,7 @@ agropasto_forecast |>
     color = "blue", alpha = 0.6
   ) +
   geom_line(
-    data = agropasto_train_data,
+    data = riverine_train_data,
     aes(x = Monthly, y = sam_admissions),
     color = "black"
   ) +
@@ -202,7 +205,7 @@ agropasto_forecast |>
     values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
   ) +
   labs(
-    title = "Forecasted SAM admissions into the program in the agropastoral livelihood systems",
+    title = "Forecasted SAM admissions into the program in the riverine livelihood systems",
     subtitle = "Time horizon: from January to June 2025",
     y = "Number of cases",
     x = "Monthly"
