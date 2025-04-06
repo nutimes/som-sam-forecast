@@ -126,3 +126,17 @@ augment(urbanidps_fit) |>
 
 urbanidps_forecast <- urbanidps_fit |>
   forecast(h = nrow(urbanidps_test_data))
+
+
+### ------------------------------------ Evaluate in-sample forecast errors ----
+
+urbanidps_fit |>
+  select(auto) |>
+  accuracy()
+
+
+### ----------------------------------- Evaluate out-sample forecast errors ----
+
+urbanidps_forecast |>
+  filter(.model == "auto") |>
+  accuracy(urbanidps_test_data)
