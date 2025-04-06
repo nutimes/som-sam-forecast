@@ -78,7 +78,7 @@ ungrouped_admissions <- admissions |>
 ### ---------------------------------------------------- livelihood systems ----
 
 ####  Lambda Pastoral ----
-lambda_pastoral <- grouped_admissions |>
+lambda_pasto <- grouped_admissions |>
   filter(lsystems == "Pastoral") |>
   features(
     .var = sam_admissions,
@@ -87,7 +87,7 @@ lambda_pastoral <- grouped_admissions |>
   pull(lambda_guerrero)
 
 #### Lambda Agropastoral ----
-lambda_agropastoral <- grouped_admissions |>
+lambda_agropasto <- grouped_admissions |>
   filter(lsystems == "Agropastoral") |>
   features(
     .var = sam_admissions,
@@ -105,7 +105,7 @@ lambda_riverine <- grouped_admissions |>
   pull(lambda_guerrero)
 
 #### Lambda Urban/IDP's ----
-lambda_urban_idps <- grouped_admissions |>
+lambda_urbanidps <- grouped_admissions |>
   filter(lsystems == "Urban/IDPs") |>
   features(
     .var = sam_admissions,
