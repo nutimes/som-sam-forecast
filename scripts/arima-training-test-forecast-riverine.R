@@ -143,3 +143,20 @@ riverine_forecast <- riverine_fit |>
   forecast(h = 6) |>
   filter(.model == "arima110010")
 
+
+### ---------- Reverse box-cox transformation to original admissions scales ----
+
+riverine_forecast <- riverine_forecast |>
+  hilo(level = c(80, 95)) |>
+  unpack_hilo("80%") |>
+  unpack_hilo("95%") |>
+  mutate(
+    mean_inv = inv_box_cox(.mean, lambda_riverine),
+    across(ends_with(c("_lower", "_upper")),
+      ~ inv_box_cox(
+        .x,
+        lambda = lambda_riverine
+      ),
+      .names = "{.col}"
+    )
+  )
