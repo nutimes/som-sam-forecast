@@ -30,7 +30,7 @@ grouped_admissions |>
 
 ### --------------------- Apply seasonal differencing using training dataset ---
 
-agropasto_train_data |>
+train_data_agropasto |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -51,7 +51,7 @@ agropasto_train_data |>
 
 ### ---------------------------------------------------- ACF and PACF plots ----
 
-agropasto_train_data |>
+train_data_agropasto |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -66,7 +66,7 @@ agropasto_train_data |>
 
 ### ------------------------------ Test if the time series is a white noise ----
 
-agropasto_train_data |>
+train_data_agropasto |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -78,7 +78,7 @@ agropasto_train_data |>
 
 ## ---- Fit a Seasonal ARIMA model ---------------------------------------------
 
-agropasto_fit <- agropasto_train_data |>
+fit_agropasto <- train_data_agropasto |>
   model(
     sets = ETS(
       formula = .admissions ~ error("A") + trend("Ad") + season("A")
@@ -94,7 +94,7 @@ agropasto_fit <- agropasto_train_data |>
 
 ### ----------------------- Identify the best model-fit amongst the others -----
 
-glance(agropasto_fit) |>
+glance(fit_agropasto) |>
   arrange(AICc) |>
   select(.model:BIC)
 
@@ -102,57 +102,57 @@ glance(agropasto_fit) |>
 
 ### -------------------------- Diganose residuals (white noise?) using plot ----
 
-agropasto_fit |>
+fit_agropasto |>
   select(auto) |>
   gg_tsresiduals(lag = 36)
 
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
-augment(agropasto_fit) |>
+augment(fit_agropasto) |>
   filter(.model == "auto") |>
   features(.innov, ljung_box, lag = 36, def = 1)
 
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-agropasto_forecast <- agropasto_fit |>
-  forecast(h = nrow(agropasto_test_data))
+forecast_agropasto <- fit_agropasto |>
+  forecast(h = nrow(test_data_agropasto))
 
 
 ### ------------------------------------ Evaluate in-sample forecast errors ----
 
-agropasto_fit |>
+fit_agropasto |>
   select(auto) |>
   accuracy()
 
 
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
-agropasto_forecast |>
+forecast_agropasto |>
   filter(.model == "auto") |>
-  accuracy(agropasto_test_data)
+  accuracy(test_data_agropasto)
 
 
 ## ---- Forecast future admissions cases into program --------------------------
 
-agropasto_forecast <- agropasto_fit |>
+forecast_agropasto <- fit_agropasto |>
   forecast(h = 6) |>
   filter(.model == "auto")
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
 
-agropasto_forecast <- agropasto_forecast |>
+forecast_agropasto <- forecast_agropasto |>
   hilo(level = c(80, 95)) |>
   unpack_hilo("80%") |>
   unpack_hilo("95%") |>
   mutate(
-    mean_inv = inv_box_cox(.mean, lambda_agropastoral),
+    mean_inv = inv_box_cox(.mean, lambda_agropasto),
     across(ends_with(c("_lower", "_upper")),
       ~ inv_box_cox(
         .x,
-        lambda = lambda_agropastoral
+        lambda = lambda_agropasto
       ),
       .names = "{.col}"
     )
@@ -163,7 +163,7 @@ agropasto_forecast <- agropasto_forecast |>
 
 ### ------------------------------------------------------------- Tidy data ----
 
-agropasto_forecast <- agropasto_forecast |>
+forecast_agropasto <- forecast_agropasto |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
     names_to = "interval",
@@ -182,7 +182,7 @@ agropasto_forecast <- agropasto_forecast |>
 
 ### ------------------------------------------------------ Plot forecasts ----
 
-agropasto_forecast |>
+forecast_agropasto |>
   ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
@@ -193,7 +193,7 @@ agropasto_forecast |>
     color = "blue", alpha = 0.6
   ) +
   geom_line(
-    data = agropasto_train_data,
+    data = train_data_agropasto,
     aes(x = Monthly, y = sam_admissions),
     color = "black"
   ) +

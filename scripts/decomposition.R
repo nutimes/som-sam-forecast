@@ -83,7 +83,7 @@ seasonal_cmpnt_national_a2022 <- cmpnts_national |>
 ### -------------------------------------------- Pastoral livelihood system ----
 
 #### Get components ----
-cmpnts_pastoral <- grouped_admissions |>
+cmpnts_pasto <- grouped_admissions |>
   filter(lsystems == "Pastoral") |>
   model(
     STL(sam_admissions ~ trend(window = 9) + season(window = 7))
@@ -91,7 +91,7 @@ cmpnts_pastoral <- grouped_admissions |>
   components()
 
 #### Visualize the components ----
-cmpnts_plot_pastoral <- cmpnts_pastoral |>
+cmpnts_plot_pasto <- cmpnts_pasto |>
   autoplot() +
   labs(
     title = "Trends and Seasonal Patterns in Pastoral Livelihood System",
@@ -104,7 +104,7 @@ cmpnts_plot_pastoral <- cmpnts_pastoral |>
   )
 
 #### Plot the seasonal component over years ----
-seasonal_cmpnt_pastoral <- cmpnts_pastoral |>
+seasonal_cmpnt_pasto <- cmpnts_pasto |>
   select(season_year) |>
   gg_season(y = season_year) +
   labs(
@@ -121,7 +121,7 @@ seasonal_cmpnt_pastoral <- cmpnts_pastoral |>
   )
 
 ##### Subset the seasonal component before 2022 ----
-seasonal_cmpnt_pastoral_b2022 <- cmpnts_pastoral |>
+seasonal_cmpnt_pasto_b2022 <- cmpnts_pasto |>
   filter(year(Monthly) < 2022) |>
   select(season_year) |>
   gg_season(y = season_year) +
@@ -139,7 +139,7 @@ seasonal_cmpnt_pastoral_b2022 <- cmpnts_pastoral |>
   )
 
 ##### Subset the seasonal component as of 2022 ----
-seasonal_cmpnt_pastoral_a2022 <- cmpnts_pastoral |>
+seasonal_cmpnt_pasto_a2022 <- cmpnts_pasto |>
   filter(year(Monthly) >= 2022) |>
   select(season_year) |>
   gg_season(y = season_year) +
@@ -159,7 +159,7 @@ seasonal_cmpnt_pastoral_a2022 <- cmpnts_pastoral |>
 ### ---------------------------------------- Agropastoral livelihood system ----
 
 #### Get components ----
-cmpnts_agropastoral <- grouped_admissions |>
+cmpnts_agropasto <- grouped_admissions |>
   filter(lsystems == "Agropastoral") |>
   model(
     STL(sam_admissions ~ trend(window = 9) + season(window = 7))
@@ -167,7 +167,7 @@ cmpnts_agropastoral <- grouped_admissions |>
   components()
 
 #### Visualize the components ----
-cmpnts_plot_agropastoral <- cmpnts_agropastoral |>
+cmpnts_plot_agropasto <- cmpnts_agropasto |>
   autoplot() +
   labs(
     title = "Trends and Seasonal Patterns in Agropastoral Livelihood System",
@@ -180,7 +180,7 @@ cmpnts_plot_agropastoral <- cmpnts_agropastoral |>
   )
 
 #### Plot the seasonal component over years ----
-seasonal_cmpnt_agropastoral <- cmpnts_agropastoral |>
+seasonal_cmpnt_agropasto <- cmpnts_agropasto |>
   select(season_year) |>
   gg_season(y = season_year) +
   labs(
@@ -196,7 +196,7 @@ seasonal_cmpnt_agropastoral <- cmpnts_agropastoral |>
   )
 
 #### Subset the seasonal component before 2022 ----
-seasonal_cmpnt_agropastoral_b2022 <- cmpnts_agropastoral |>
+seasonal_cmpnt_agropasto_b2022 <- cmpnts_agropasto |>
   filter(year(Monthly) < 2022) |>
   select(season_year) |>
   gg_season(y = season_year) +
@@ -214,7 +214,7 @@ seasonal_cmpnt_agropastoral_b2022 <- cmpnts_agropastoral |>
   )
 
 #### Subset the seasonal component as of 2022 ----
-seasonal_cmpnt_agropastoral_a2022 <- cmpnts_agropastoral |>
+seasonal_cmpnt_agropasto_a2022 <- cmpnts_agropasto |>
   filter(year(Monthly) >= 2022) |>
   select(season_year) |>
   gg_season(y = season_year) +
@@ -308,7 +308,7 @@ seasonal_cmpnt_riverine_a2022 <- cmpnts_riverine |>
 ### ------------------------------------------ Urban/IDPs livelihood system ----
 
 #### Get component ----
-cmpnts_urban_idps <- grouped_admissions |>
+cmpnts_urbanidps <- grouped_admissions |>
   filter(lsystems == "Urban/IDPs") |>
   model(
     STL(sam_admissions ~ trend(window = 9) + season(window = 7))
@@ -316,7 +316,7 @@ cmpnts_urban_idps <- grouped_admissions |>
   components()
 
 #### Visualize the components ----
-cmpnts_plot_urban_idps <- cmpnts_urban_idps |>
+cmpnts_plot_urbanidps <- cmpnts_urbanidps |>
   autoplot() +
   labs(
     title = "Trends and Seasonal Patterns in Urban/IDPs Livelihood System",
@@ -329,7 +329,7 @@ cmpnts_plot_urban_idps <- cmpnts_urban_idps |>
   )
 
 #### Plot the seasonal component over years ----
-seasonal_cmpnt_urban_idps <- cmpnts_urban_idps |>
+seasonal_cmpnt_urbanidps <- cmpnts_urbanidps |>
   select(season_year) |>
   gg_season(y = season_year) +
   labs(
@@ -345,7 +345,7 @@ seasonal_cmpnt_urban_idps <- cmpnts_urban_idps |>
   )
 
 #### Subset the seasonal component before 2022 ----
-seasonal_cmpnt_urban_idps_b2022 <- cmpnts_urban_idps |>
+seasonal_cmpnt_urbanidps_b2022 <- cmpnts_urbanidps |>
   filter(year(Monthly) < 2022) |>
   select(season_year) |>
   gg_season(y = season_year) +
@@ -363,7 +363,7 @@ seasonal_cmpnt_urban_idps_b2022 <- cmpnts_urban_idps |>
   )
 
 #### Subset the seasonal component as of 2022 ----
-seasonal_cmpnt_urban_idps_a2022 <- cmpnts_urban_idps |>
+seasonal_cmpnt_urbanidps_a2022 <- cmpnts_urbanidps |>
   filter(year(Monthly) >= 2022) |>
   select(season_year) |>
   gg_season(y = season_year) +

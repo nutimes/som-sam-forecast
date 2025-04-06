@@ -31,7 +31,7 @@ grouped_admissions |>
 
 ### --------------------- Apply seasonal differencing using training dataset ---
 
-riverine_train_data |>
+train_data_riverine |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -52,7 +52,7 @@ riverine_train_data |>
 
 ### ---------------------------------------------------- ACF and PACF plots ----
 
-riverine_train_data |>
+train_data_riverine |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -68,7 +68,7 @@ riverine_train_data |>
 
 ### ------------------------------ Test if the time series is a white noise ----
 
-riverine_train_data |>
+train_data_riverine |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -80,7 +80,7 @@ riverine_train_data |>
 
 ## ---- Fit a Seasonal ARIMA model ---------------------------------------------
 
-riverine_fit <- riverine_train_data |>
+fit_riverine <- train_data_riverine |>
   model(
     sets = ETS(
       formula = .admissions ~ error("A") + trend("Ad") + season("A")
@@ -98,7 +98,7 @@ riverine_fit <- riverine_train_data |>
 
 ### ----------------------- Identify the best model-fit amongst the others -----
 
-glance(riverine_fit) |>
+glance(fit_riverine) |>
   arrange(AICc) |>
   select(.model:BIC)
 
@@ -106,47 +106,47 @@ glance(riverine_fit) |>
 
 ### -------------------------- Diganose residuals (white noise?) using plot ----
 
-riverine_fit |>
+fit_riverine |>
   select(arima110010) |>
   gg_tsresiduals(lag = 36)
 
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
-augment(riverine_fit) |>
+augment(fit_riverine) |>
   filter(.model == "arima110010") |>
   features(.innov, ljung_box, lag = 36, def = 1)
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-riverine_forecast <- riverine_fit |>
-  forecast(h = nrow(riverine_test_data))
+forecast_riverine <- fit_riverine |>
+  forecast(h = nrow(test_data_riverine))
 
 
 ### ------------------------------------ Evaluate in-sample forecast errors ----
 
-riverine_fit |>
+fit_riverine |>
   select(arima110010) |>
   accuracy()
 
 
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
-riverine_forecast |>
+forecast_riverine |>
   filter(.model == "arima110010") |>
-  accuracy(riverine_test_data)
+  accuracy(test_data_riverine)
 
 
 ## ---- Forecast future admissions cases into program --------------------------
 
-riverine_forecast <- riverine_fit |>
+forecast_riverine <- fit_riverine |>
   forecast(h = 6) |>
   filter(.model == "arima110010")
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
 
-riverine_forecast <- riverine_forecast |>
+forecast_riverine <- forecast_riverine |>
   hilo(level = c(80, 95)) |>
   unpack_hilo("80%") |>
   unpack_hilo("95%") |>
@@ -166,7 +166,7 @@ riverine_forecast <- riverine_forecast |>
 
 ### ------------------------------------------------------------- Tidy data ----
 
-riverine_forecast <- riverine_forecast |>
+forecast_riverine <- forecast_riverine |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
     names_to = "interval",
@@ -185,7 +185,7 @@ riverine_forecast <- riverine_forecast |>
 
 ### ------------------------------------------------------ Plot forecasts ----
 
-riverine_forecast |>
+forecast_riverine |>
   ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
@@ -196,7 +196,7 @@ riverine_forecast |>
     color = "blue", alpha = 0.6
   ) +
   geom_line(
-    data = riverine_train_data,
+    data = train_data_riverine,
     aes(x = Monthly, y = sam_admissions),
     color = "black"
   ) +
