@@ -28,7 +28,7 @@ grouped_admissions |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
-## --------------------- Apply seasonal differencing using training dataset ----
+### --------------------- Apply seasonal differencing using training dataset ---
 
 agropasto_train_data |>
   mutate(
