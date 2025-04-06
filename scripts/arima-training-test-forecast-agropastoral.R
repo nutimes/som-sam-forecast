@@ -1,5 +1,5 @@
 ################################################################################
-#          TRAIN, TEST MODEL AND FORECAST - PASTORAL LIVELIHOOD SYSTEM         #
+#       TRAIN, TEST MODEL AND FORECAST - AGROPASTORAL LIVELIHOOD SYSTEM        #
 ################################################################################
 
 
@@ -7,8 +7,9 @@
 
 ### ----------------------------------- ACF plot of the original admissions ----
 
+
 grouped_admissions |>
-  filter(lsystems == "Pastoral") |>
+  filter(lsystems == "Agropastoral") |>
   ACF(
     y = sam_admissions,
     type = "correlation",
@@ -29,7 +30,7 @@ grouped_admissions |>
 
 ## --------------------- Apply seasonal differencing using training dataset ----
 
-pasto_train_data |>
+agropasto_train_data |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -47,9 +48,10 @@ pasto_train_data |>
     plot.subtitle = element_text(colour = "#706E6D")
   )
 
+
 ### ---------------------------------------------------- ACF and PACF plots ----
 
-pasto_train_data |>
+agropasto_train_data |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -57,14 +59,14 @@ pasto_train_data |>
     ) |> difference(1)
   ) |>
   gg_tsdisplay(y = .admissions, plot_type = "partial", lag_max = 36) +
-  labs(title = "Pastoral livelihood system")
+  labs(title = "Agropastoral livelihood system")
 
 # Candidate models selected based on ACF (MA) and PACF (AR):
-# ARIMA(0,1,1)(0,1,1)[12] and ARIMA(1,1,0)(1,1,0)[12]
+# ARIMA(0,1,0)(0,1,0)[12]
 
 ### ------------------------------ Test if the time series is a white noise ----
 
-pasto_train_data |>
+agropasto_train_data |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -76,22 +78,23 @@ pasto_train_data |>
 
 ## ---- Fit a Seasonal ARIMA model ---------------------------------------------
 
-pasto_fit <- pasto_train_data |>
+agropasto_fit <- agropasto_train_data |>
   model(
     sets = ETS(
       formula = .admissions ~ error("A") + trend("Ad") + season("A")
     ),
-    arima010011 = ARIMA(
-      formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 1)
+    arima010010 = ARIMA(
+      formula = .admissions ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
     ),
-    arima010110 = ARIMA(
-      formula = .admissions ~ pdq(1, 1, 0) + PDQ(1, 1, 0)
+    auto = ARIMA(
+      formula = .admissions, stepwise = FALSE, approximation = FALSE
     )
   )
 
+
 ### ----------------------- Identify the best model-fit amongst the others -----
 
-glance(pasto_fit) |>
+glance(agropasto_fit) |>
   arrange(AICc) |>
   select(.model:BIC)
 
@@ -99,56 +102,57 @@ glance(pasto_fit) |>
 
 ### -------------------------- Diganose residuals (white noise?) using plot ----
 
-pasto_fit |>
-  select(arima010011) |>
+agropasto_fit |>
+  select(auto) |>
   gg_tsresiduals(lag = 36)
 
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
-augment(pasto_fit) |>
-  filter(.model == "arima010011") |>
+augment(agropasto_fit) |>
+  filter(.model == "auto") |>
   features(.innov, ljung_box, lag = 36, def = 1)
+
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-pasto_forecast <- pasto_fit |>
-  forecast(h = nrow(pasto_test_data))
+agropasto_forecast <- agropasto_fit |>
+  forecast(h = nrow(agropasto_test_data))
 
 
 ### ------------------------------------ Evaluate in-sample forecast errors ----
 
-pasto_fit |>
-  select(arima010011) |>
+agropasto_fit |>
+  select(auto) |>
   accuracy()
 
 
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
-pasto_forecast |>
-  filter(.model == "arima010011") |>
-  accuracy(pasto_test_data)
+agropasto_forecast |>
+  filter(.model == "auto") |>
+  accuracy(agropasto_test_data)
 
 
 ## ---- Forecast future admissions cases into program --------------------------
 
-pasto_forecast <- pasto_fit |>
+agropasto_forecast <- agropasto_fit |>
   forecast(h = 6) |>
-  filter(.model == "arima010011")
+  filter(.model == "auto")
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
 
-pasto_forecast <- pasto_forecast |>
+agropasto_forecast <- agropasto_forecast |>
   hilo(level = c(80, 95)) |>
   unpack_hilo("80%") |>
   unpack_hilo("95%") |>
   mutate(
-    mean_inv = inv_box_cox(mean(.admissions), lambda_pastoral),
+    mean_inv = inv_box_cox(.mean, lambda_agropastoral),
     across(ends_with(c("_lower", "_upper")),
       ~ inv_box_cox(
         .x,
-        lambda = lambda_pastoral
+        lambda = lambda_agropastoral
       ),
       .names = "{.col}"
     )
@@ -159,7 +163,7 @@ pasto_forecast <- pasto_forecast |>
 
 ### ------------------------------------------------------------- Tidy data ----
 
-pasto_forecast <- pasto_forecast |>
+agropasto_forecast <- agropasto_forecast |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
     names_to = "interval",
@@ -178,7 +182,7 @@ pasto_forecast <- pasto_forecast |>
 
 ### ------------------------------------------------------ Plot forecasts ----
 
-pasto_forecast |>
+agropasto_forecast |>
   ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
@@ -189,7 +193,7 @@ pasto_forecast |>
     color = "blue", alpha = 0.6
   ) +
   geom_line(
-    data = pasto_train_data,
+    data = agropasto_train_data,
     aes(x = Monthly, y = sam_admissions),
     color = "black"
   ) +
@@ -198,7 +202,7 @@ pasto_forecast |>
     values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
   ) +
   labs(
-    title = "Future SAM admission cases by June 2025 in pastoral livelihood systems",
+    title = "Forecasted SAM admissions into the program in the agropastoral livelihood systems",
     subtitle = "Time horizon: from January to June 2025",
     y = "Number of cases",
     x = "Monthly"
