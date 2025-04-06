@@ -76,3 +76,22 @@ riverine_train_data |>
     ) |> difference(1)
   ) |>
   features(.var = .admissions, ljung_box, lag = 10)
+
+
+## ---- Fit a Seasonal ARIMA model ---------------------------------------------
+
+riverine_fit <- riverine_train_data |>
+  model(
+    sets = ETS(
+      formula = .admissions ~ error("A") + trend("Ad") + season("A")
+    ),
+    arima011012 = ARIMA(
+      formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 1)
+    ),
+    arima110010 = ARIMA(
+      formula = .admissions ~ pdq(1, 1, 0) + PDQ(0, 1, 0)
+    ),
+    auto = ARIMA(
+      formula = .admissions, stepwise = FALSE, approximation = FALSE
+    )
+  )
