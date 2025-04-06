@@ -57,10 +57,22 @@ urbanidps_train_data |>
     .admissions = do.call(
       what = difference,
       args = list(x = .admissions, lag = 12, differences = 1)
-    ) |> difference(1)
+    ) |> difference(2)
   ) |>
   gg_tsdisplay(y = .admissions, plot_type = "partial", lag_max = 36) +
   labs(title = "Riverine livelihood system")
 
 # Candidate models selected based on ACF (MA) and PACF (AR):
 # ARIMA(0,1,1)(0,1,2)[12] or ARIMA(1,1,0)(0,1,0)
+
+
+### ------------------------------ Test if the time series is a white noise ----
+
+urbanidps_train_data |>
+  mutate(
+    .admissions = do.call(
+      what = difference,
+      args = list(x = .admissions, lag = 12, differences = 1)
+    ) |> difference(2)
+  ) |>
+  features(.var = .admissions, ljung_box, lag = 10)
