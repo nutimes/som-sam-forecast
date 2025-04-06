@@ -95,3 +95,11 @@ riverine_fit <- riverine_train_data |>
       formula = .admissions, stepwise = FALSE, approximation = FALSE
     )
   )
+
+### ----------------------- Identify the best model-fit amongst the others -----
+
+glance(riverine_fit) |>
+  arrange(AICc) |>
+  select(.model:BIC)
+
+# .model arima110010 had the lowest AICc - best model.
