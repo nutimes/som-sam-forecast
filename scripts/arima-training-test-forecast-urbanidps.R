@@ -140,3 +140,10 @@ urbanidps_fit |>
 urbanidps_forecast |>
   filter(.model == "auto") |>
   accuracy(urbanidps_test_data)
+
+
+## ---- Forecast future admissions cases into program --------------------------
+
+urbanidps_forecast <- urbanidps_fit |>
+  forecast(h = 6) |>
+  filter(.model == "auto")
