@@ -107,3 +107,16 @@ glance(urbanidps_fit) |>
   select(.model:BIC)
 
 # .model auto had the lowest AICc - best model.
+
+### -------------------------- Diganose residuals (white noise?) using plot ----
+
+urbanidps_fit |>
+  select(auto) |>
+  gg_tsresiduals(lag = 36)
+
+
+### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
+
+augment(urbanidps_fit) |>
+  filter(.model == "auto") |>
+  features(.innov, ljung_box, lag = 36, def = 1)
