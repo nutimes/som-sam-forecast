@@ -120,3 +120,9 @@ urbanidps_fit |>
 augment(urbanidps_fit) |>
   filter(.model == "auto") |>
   features(.innov, ljung_box, lag = 36, def = 1)
+
+
+### ------------------------------- Forecast: h-steps = the test set period ----
+
+urbanidps_forecast <- urbanidps_fit |>
+  forecast(h = nrow(urbanidps_test_data))
