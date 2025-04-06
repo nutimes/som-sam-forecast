@@ -28,3 +28,23 @@ grouped_admissions |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
+
+### --------------------- Apply seasonal differencing using training dataset ---
+
+riverine_train_data |>
+  mutate(
+    .admissions = do.call(
+      what = difference,
+      args = list(x = .admissions, lag = 12, differences = 1)
+    ) |> difference(1)
+  ) |>
+  autoplot(.vars = .admissions) +
+  labs(
+    title = "Seasonal differenced time serie",
+    subtitle = "It shows constant variance across the series"
+  ) +
+  theme(
+    plot.caption = element_text(colour = "#706E6D"),
+    axis.title.y = element_text(size = 10, margin = margin(r = 5)),
+    plot.subtitle = element_text(colour = "#706E6D")
+  )
