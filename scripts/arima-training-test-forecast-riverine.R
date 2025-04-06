@@ -64,3 +64,15 @@ riverine_train_data |>
 
 # Candidate models selected based on ACF (MA) and PACF (AR):
 # ARIMA(0,1,1)(0,1,2)[12] or ARIMA(1,1,0)(0,1,0)
+
+
+### ------------------------------ Test if the time series is a white noise ----
+
+riverine_train_data |>
+  mutate(
+    .admissions = do.call(
+      what = difference,
+      args = list(x = .admissions, lag = 12, differences = 1)
+    ) |> difference(1)
+  ) |>
+  features(.var = .admissions, ljung_box, lag = 10)
