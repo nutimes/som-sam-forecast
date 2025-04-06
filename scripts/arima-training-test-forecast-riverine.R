@@ -116,3 +116,8 @@ riverine_fit |>
 augment(riverine_fit) |>
   filter(.model == "arima110010") |>
   features(.innov, ljung_box, lag = 36, def = 1)
+
+### ------------------------------- Forecast: h-steps = the test set period ----
+
+riverine_forecast <- riverine_fit |>
+  forecast(h = nrow(riverine_test_data))
