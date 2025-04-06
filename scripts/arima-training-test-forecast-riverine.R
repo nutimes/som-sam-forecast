@@ -41,7 +41,7 @@ riverine_train_data |>
   autoplot(.vars = .admissions) +
   labs(
     title = "Seasonal differenced time serie",
-    subtitle = "It shows constant variance across the series"
+    subtitle = "It shows a constant variance across the series"
   ) +
   theme(
     plot.caption = element_text(colour = "#706E6D"),
@@ -85,8 +85,8 @@ riverine_fit <- riverine_train_data |>
     sets = ETS(
       formula = .admissions ~ error("A") + trend("Ad") + season("A")
     ),
-    arima011012 = ARIMA(
-      formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 1)
+    arima011010 = ARIMA(
+      formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 0)
     ),
     arima110010 = ARIMA(
       formula = .admissions ~ pdq(1, 1, 0) + PDQ(0, 1, 0)
@@ -121,3 +121,17 @@ augment(riverine_fit) |>
 
 riverine_forecast <- riverine_fit |>
   forecast(h = nrow(riverine_test_data))
+
+
+### ------------------------------------ Evaluate in-sample forecast errors ----
+
+riverine_fit |>
+  select(arima110010) |>
+  accuracy()
+
+
+### ----------------------------------- Evaluate out-sample forecast errors ----
+
+riverine_forecast |>
+  filter(.model == "arima110010") |>
+  accuracy(riverine_test_data)
