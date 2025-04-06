@@ -16,9 +16,9 @@ grouped_admissions |>
   ) |>
   autoplot() +
   labs(
-    title = "First order autocorrelation by livelihood system",
+    title = "First order autocorrelation",
     subtitle = "Time series show non-stationarity: it has a trend and seasonal pattern",
-    y = "Autocorrelation coeficient"
+    y = "Autocorrelation coefficient"
   ) +
   theme(
     plot.subtitle = element_text(colour = "#706E6D"),
@@ -27,7 +27,7 @@ grouped_admissions |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
-## ------------------------ Apply seasonal differencing using training data ----
+## --------------------- Apply seasonal differencing using training dataset ----
 
 pasto_train_data |>
   mutate(
@@ -38,7 +38,7 @@ pasto_train_data |>
   ) |>
   autoplot(.vars = .admissions) +
   labs(
-    title = "Seasonal differenced time series",
+    title = "Seasonal differenced time serie",
     subtitle = "It shows constant variance across the series"
   ) +
   theme(
@@ -76,12 +76,10 @@ pasto_train_data |>
 
 ## ---- Fit a Seasonal ARIMA model ---------------------------------------------
 
-### -------------------------------------------- Pastoral Livelihood system ----
-
 pasto_fit <- pasto_train_data |>
   model(
     sets = ETS(
-      formula = .admissions ~ error("A") + trend("A") + season("A")
+      formula = .admissions ~ error("A") + trend("Ad") + season("A")
     ),
     arima010011 = ARIMA(
       formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 1)
@@ -91,23 +89,13 @@ pasto_fit <- pasto_train_data |>
     )
   )
 
-
-### --------- Check candidate ARIMA models vs automatically selected models ----
-
-pasto_fit |>
-  pivot_longer(
-    cols = 2:4,
-    names_to = "model_name",
-    values_to = "orders"
-  )
-
-
 ### ----------------------- Identify the best model-fit amongst the others -----
 
 glance(pasto_fit) |>
   arrange(AICc) |>
   select(.model:BIC)
 
+# .model arima010011 had the lowest AICc - best model.
 
 ### -------------------------- Diganose residuals (white noise?) using plot ----
 
@@ -169,7 +157,9 @@ pasto_forecast <- pasto_forecast |>
 
 ## ---- Visualize forecasts ----------------------------------------------------
 
-pasto_forecast |>
+### ------------------------------------------------------------- Tidy data ----
+
+pasto_forecast <- pasto_forecast |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
     names_to = "interval",
@@ -183,8 +173,13 @@ pasto_forecast |>
   pivot_wider(
     names_from = bound,
     values_from = value
-  ) |>
-  ggplot() +
+  )
+
+
+  ### ------------------------------------------------------ Plot forecasts ----
+  
+  pasto_forecast |> 
+    ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
     alpha = 0.5
