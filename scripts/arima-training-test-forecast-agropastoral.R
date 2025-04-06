@@ -180,10 +180,10 @@ agropasto_forecast <- agropasto_forecast |>
   )
 
 
-  ### ------------------------------------------------------ Plot forecasts ----
-  
- agropasto_forecast |> 
-    ggplot() +
+### ------------------------------------------------------ Plot forecasts ----
+
+agropasto_forecast |>
+  ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
     alpha = 0.5
@@ -207,12 +207,12 @@ agropasto_forecast <- agropasto_forecast |>
     y = "Number of cases",
     x = "Monthly"
   ) +
-  theme_minimal() + 
-    theme(
-      plot.title = element_text(size = 10),
-      plot.subtitle = element_text(size = 9, colour = "#706E6D"),
-      axis.title.y = element_text(size = 10, margin = margin(r = 5)),
-      axis.title.x = element_text(size = 10, margin = margin(r = 5))
-    )
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D"),
+    axis.title.y = element_text(size = 10, margin = margin(r = 5)),
+    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+  )
 
 ################################ End of workflow ###############################

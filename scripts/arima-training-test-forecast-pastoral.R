@@ -176,10 +176,10 @@ pasto_forecast <- pasto_forecast |>
   )
 
 
-  ### ------------------------------------------------------ Plot forecasts ----
-  
-  pasto_forecast |> 
-    ggplot() +
+### ------------------------------------------------------ Plot forecasts ----
+
+pasto_forecast |>
+  ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
     alpha = 0.5
@@ -199,9 +199,16 @@ pasto_forecast <- pasto_forecast |>
   ) +
   labs(
     title = "Future SAM admission cases by June 2025 in pastoral livelihood systems",
+    subtitle = "Time horizon: from January to June 2025",
     y = "Number of cases",
     x = "Monthly"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D"),
+    axis.title.y = element_text(size = 10, margin = margin(r = 5)),
+    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+  )
 
 ################################ End of workflow ###############################
