@@ -119,7 +119,7 @@ forecast_pasto <- fit_pasto |>
 ### ------------------------------------ Evaluate in-sample forecast errors ----
 
 fit_pasto |>
-  select(arima010011) |>
+  select(arima011011) |>
   accuracy()
 
 
