@@ -133,6 +133,7 @@ forecast_agropasto |>
   filter(.model == "auto") |>
   accuracy(test_data_agropasto)
 
+
 ## ---- Refit model on full data -----------------------------------------------
 
 fit_agropasto_full <- grouped_admissions |> 

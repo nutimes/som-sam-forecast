@@ -81,7 +81,7 @@ fit_pasto <- train_data_pasto |>
     sets = ETS(
       formula = .admissions ~ error("A") + trend("Ad") + season("A")
     ),
-    arima010011 = ARIMA(
+    arima011011 = ARIMA(
       formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 1)
     ),
     arima010110 = ARIMA(
@@ -100,14 +100,14 @@ glance(fit_pasto) |>
 ### -------------------------- Diganose residuals (white noise?) using plot ----
 
 fit_pasto |>
-  select(arima010011) |>
+  select(arima011011) |>
   gg_tsresiduals(lag = 36)
 
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
 augment(fit_pasto) |>
-  filter(.model == "arima010011") |>
+  filter(.model == "arima011011") |>
   features(.innov, ljung_box, lag = 36, def = 1)
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
@@ -126,15 +126,26 @@ fit_pasto |>
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
 forecast_pasto |>
-  filter(.model == "arima010011") |>
+  filter(.model == "arima011011") |>
   accuracy(test_data_pasto)
 
 
-## ---- Forecast future admissions cases into program --------------------------
 
-forecast_pasto <- fit_pasto |>
-  forecast(h = 6) |>
-  filter(.model == "arima010011")
+## ---- Refit model on full data -----------------------------------------------
+
+fit_pasto_full <- grouped_admissions |> 
+  subset(lsystems == "Pastoral") |> 
+  model(
+    arima011011 = ARIMA(.admissions ~ pdq(0,1,1) + PDQ(0,1,1))
+  )
+
+
+## ---- Forecast future admissions cases into program: January to June 2025 ----
+
+forecast_pasto <- forecast(
+  object = fit_pasto_full,
+  h = 6
+)
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
@@ -189,7 +200,8 @@ forecast_pasto |>
     color = "blue", alpha = 0.6
   ) +
   geom_line(
-    data = train_data_pasto,
+    data = grouped_admissions |> 
+      subset(lsystems == "Pastoral"),
     aes(x = Monthly, y = sam_admissions),
     color = "black"
   ) +
