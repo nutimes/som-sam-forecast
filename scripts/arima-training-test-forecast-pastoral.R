@@ -144,7 +144,7 @@ fit_pasto_full <- grouped_admissions |>
 
 forecast_pasto <- forecast(
   object = fit_pasto_full,
-  h = 6
+  h = 12
 )
 
 

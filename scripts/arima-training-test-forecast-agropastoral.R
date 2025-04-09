@@ -147,7 +147,7 @@ fit_agropasto_full <- grouped_admissions |>
 
 forecast_agropasto <- forecast(
   object = fit_agropasto_full,
-  h = 6
+  h = 12
 )
 
 
