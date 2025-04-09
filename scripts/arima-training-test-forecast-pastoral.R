@@ -140,7 +140,7 @@ fit_pasto_full <- grouped_admissions |>
   )
 
 
-## ---- Forecast future admissions cases into program: January to June 2025 ----
+### --- Forecast future admissions cases into program: January to December 2025 
 
 forecast_pasto <- forecast(
   object = fit_pasto_full,
@@ -211,7 +211,7 @@ forecast_pasto |>
   ) +
   labs(
     title = "Future SAM admission cases by June 2025 in pastoral livelihood systems",
-    subtitle = "Time horizon: from January to June 2025",
+    subtitle = "Time horizon: from January to December 2025",
     y = "Number of cases",
     x = "Monthly"
   ) +

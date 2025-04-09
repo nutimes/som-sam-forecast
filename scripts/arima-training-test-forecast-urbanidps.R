@@ -142,11 +142,22 @@ forecast_urbanidps |>
   accuracy(test_data_urbanidps)
 
 
-## ---- Forecast future admissions cases into program --------------------------
+## ---- Refit model on full data -----------------------------------------------
 
-forecast_urbanidps <- fit_urbanidps |>
-  forecast(h = 6) |>
-  filter(.model == "auto")
+fit_urbanidps_full <- grouped_admissions |> 
+  subset(lsystems == "Urban/IDPs") |> 
+  model(
+    auto = ARIMA(.admissions ~ pdq(0,1,1) + PDQ(0,0,1))
+  )
+
+
+### --- Forecast future admissions cases into program: January to December 2025 
+
+forecast_urbanidps <- forecast(
+  object = fit_urbanidps_full,
+  h = 12
+)
+
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
@@ -201,7 +212,8 @@ forecast_urbanidps |>
     color = "blue", alpha = 0.6
   ) +
   geom_line(
-    data = train_data_urbanidps,
+    data = grouped_admissions |> 
+      subset(lsystems == "Urban/IDPs"),
     aes(x = Monthly, y = sam_admissions),
     color = "black"
   ) +
@@ -211,7 +223,7 @@ forecast_urbanidps |>
   ) +
   labs(
     title = "Forecasted SAM admissions into the program in the Urban/IDPs livelihood systems",
-    subtitle = "Time horizon: from January to June 2025",
+    subtitle = "Time horizon: from January to December 2025",
     y = "Number of cases",
     x = "Monthly"
   ) +

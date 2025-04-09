@@ -107,14 +107,14 @@ glance(fit_riverine) |>
 ### -------------------------- Diganose residuals (white noise?) using plot ----
 
 fit_riverine |>
-  select(arima110010) |>
+  select(auto) |>
   gg_tsresiduals(lag = 36)
 
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
 augment(fit_riverine) |>
-  filter(.model == "arima110010") |>
+  filter(.model == "auto") |>
   features(.innov, ljung_box, lag = 36, def = 1)
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
@@ -126,22 +126,33 @@ forecast_riverine <- fit_riverine |>
 ### ------------------------------------ Evaluate in-sample forecast errors ----
 
 fit_riverine |>
-  select(arima110010) |>
+  select(auto) |>
   accuracy()
 
 
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
 forecast_riverine |>
-  filter(.model == "arima110010") |>
+  filter(.model == "auto") |>
   accuracy(test_data_riverine)
 
 
-## ---- Forecast future admissions cases into program --------------------------
+## ---- Refit model on full data -----------------------------------------------
 
-forecast_riverine <- fit_riverine |>
-  forecast(h = 6) |>
-  filter(.model == "arima110010")
+fit_riverine_full <- grouped_admissions |> 
+  subset(lsystems == "Riverine") |> 
+  model(
+    auto = ARIMA(.admissions ~ pdq(0,1,1) + PDQ(0,0,1))
+  )
+
+
+### --- Forecast future admissions cases into program: January to December 2025 
+
+forecast_riverine <- forecast(
+  object = fit_riverine_full,
+  h = 12
+)
+
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
@@ -196,7 +207,8 @@ forecast_riverine |>
     color = "blue", alpha = 0.6
   ) +
   geom_line(
-    data = train_data_riverine,
+    data = grouped_admissions |> 
+      subset(lsystems == "Riverine"),
     aes(x = Monthly, y = sam_admissions),
     color = "black"
   ) +
@@ -206,7 +218,7 @@ forecast_riverine |>
   ) +
   labs(
     title = "Forecasted SAM admissions into the program in the riverine livelihood systems",
-    subtitle = "Time horizon: from January to June 2025",
+    subtitle = "Time horizon: from January to December 2025",
     y = "Number of cases",
     x = "Monthly"
   ) +
