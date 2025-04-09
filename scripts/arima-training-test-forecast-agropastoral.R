@@ -133,8 +133,15 @@ forecast_agropasto |>
   filter(.model == "auto") |>
   accuracy(test_data_agropasto)
 
+## ---- Refit model on full data -----------------------------------------------
 
-## ---- Forecast future admissions cases into program --------------------------
+fit_agropasto_full <- grouped_admissions |> 
+  subset(lsystems == "Agropastoral") |> 
+  model(
+    auto = ARIMA(.admissions ~ pdq(0,1,1) + PDQ(0,0,1))
+  )
+
+## ---- Forecast future admissions cases into program: January to June 2025 ----
 
 forecast_agropasto <- fit_agropasto |>
   forecast(h = 6) |>
