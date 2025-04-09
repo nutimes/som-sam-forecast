@@ -141,11 +141,13 @@ fit_agropasto_full <- grouped_admissions |>
     auto = ARIMA(.admissions ~ pdq(0,1,1) + PDQ(0,0,1))
   )
 
+
 ## ---- Forecast future admissions cases into program: January to June 2025 ----
 
-forecast_agropasto <- fit_agropasto |>
-  forecast(h = 6) |>
-  filter(.model == "auto")
+forecast_agropasto <- forecast(
+  object = fit_agropasto_full,
+  h = 6
+)
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
@@ -200,7 +202,8 @@ forecast_agropasto |>
     color = "blue", alpha = 0.6
   ) +
   geom_line(
-    data = train_data_agropasto,
+    data = grouped_admissions |> 
+      subset(lsystems == "Agropastoral"),
     aes(x = Monthly, y = sam_admissions),
     color = "black"
   ) +
