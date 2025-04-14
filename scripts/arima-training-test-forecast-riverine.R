@@ -114,7 +114,7 @@ fit_riverine |>
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
 augment(fit_riverine) |>
-  filter(.model == "auto") |>
+  filter(.model == "arima110010") |>
   features(.innov, ljung_box, lag = 36, def = 1)
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
@@ -133,7 +133,7 @@ fit_riverine |>
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
 forecast_riverine |>
-  filter(.model == "auto") |>
+  filter(.model == "arima110010") |>
   accuracy(test_data_riverine)
 
 
@@ -152,7 +152,6 @@ forecast_riverine <- forecast(
   object = fit_riverine_full,
   h = 12
 )
-
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
