@@ -86,8 +86,11 @@ fit_pasto <- train_data_pasto |>
     ),
     arima010110 = ARIMA(
       formula = .admissions ~ pdq(1, 1, 0) + PDQ(1, 1, 0)
-    )
+    ), 
+    auto = ARIMA(
+      formula = .admissions, stepwise = FALSE, approximation = FALSE
   )
+)
 
 ### ----------------------- Identify the best model-fit amongst the others -----
 
