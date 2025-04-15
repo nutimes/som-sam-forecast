@@ -201,7 +201,7 @@ forecast_urbanidps <- forecast_urbanidps |>
 
 ### ------------------------------------------------------ Plot forecasts ----
 
-forecast_urbanidps |>
+plots <- forecast_urbanidps |>
   ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
