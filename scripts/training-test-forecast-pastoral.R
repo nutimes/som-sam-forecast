@@ -86,11 +86,11 @@ fit_pasto <- train_data_pasto |>
     ),
     arima010110 = ARIMA(
       formula = .admissions ~ pdq(1, 1, 0) + PDQ(1, 1, 0)
-    ), 
+    ),
     auto = ARIMA(
       formula = .admissions, stepwise = FALSE, approximation = FALSE
+    )
   )
-)
 
 ### ----------------------- Identify the best model-fit amongst the others -----
 
@@ -108,14 +108,24 @@ fit_pasto |>
 
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
-
-augment(fit_pasto) |>
+p <- fit_pasto |>
+  augment() |>
   filter(.model == "arima011011") |>
-  features(.innov, ljung_box, lag = 36, def = 1)
+  mutate(
+    .fitted = inv_box_cox(x = .fitted, lambda = lambda_pasto)
+  )
+
+p |>
+  features(
+    .var = .innov,
+    features = ljung_box,
+    lag = 36,
+    def = 1
+  )
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-forecast_pasto <- fit_pasto |>
+out_samp_forecast_pasto <- fit_pasto |>
   forecast(h = nrow(test_data_pasto))
 
 
@@ -128,22 +138,21 @@ fit_pasto |>
 
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
-forecast_pasto |>
+out_samp_forecast_forecast_pasto |>
   filter(.model == "arima011011") |>
   accuracy(test_data_pasto)
 
 
-
 ## ---- Refit model on full data -----------------------------------------------
 
-fit_pasto_full <- grouped_admissions |> 
-  subset(lsystems == "Pastoral") |> 
+fit_pasto_full <- grouped_admissions |>
+  subset(lsystems == "Pastoral") |>
   model(
-    arima011011 = ARIMA(.admissions ~ pdq(0,1,1) + PDQ(0,1,1))
+    arima011011 = ARIMA(.admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 1))
   )
 
 
-### --- Forecast future admissions cases into program: January to December 2025 
+### --- Forecast future admissions cases into program: January to December 2025
 
 forecast_pasto <- forecast(
   object = fit_pasto_full,
@@ -199,31 +208,52 @@ forecast_pasto |>
     alpha = 0.5
   ) +
   geom_line(
-    aes(x = Monthly, y = mean_inv),
-    color = "blue", alpha = 0.6
+    aes(x = Monthly, y = mean_inv, colour = "Forecast mean"),
+    alpha = 0.6
   ) +
   geom_line(
-    data = grouped_admissions |> 
+    data = grouped_admissions |>
       subset(lsystems == "Pastoral"),
-    aes(x = Monthly, y = sam_admissions),
-    color = "black"
+    aes(x = Monthly, y = sam_admissions, colour = "Observed admissions")
   ) +
   scale_fill_manual(
     name = "Confidence Interval",
     values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
   ) +
+  geom_line(
+    data = p,
+    aes(x = Monthly, y = .fitted, colour = "Fitted values")
+  ) +
+  geom_line(
+    data = out_samp_forecast_pasto |>
+      filter(.model == "arima011011") |>
+      mutate(.mean = inv_box_cox(x = .mean, lambda = lambda_pasto)),
+    aes(x = Monthly, y = .mean, colour = "Out-of-sample forecast"),
+    linetype = "dashed"
+  ) +
+  scale_colour_manual(
+    name = "Series",
+    values = c(
+      "Observed admissions" = "black",
+      "Fitted values" = "#E69F00",
+      "Out-of-sample forecast" = "#D55E00",
+      "Forecast mean" = "#0072B2"
+    )
+  ) +
   labs(
     title = "Future SAM admission cases by June 2025 in pastoral livelihood systems",
     subtitle = "Time horizon: from January to December 2025",
     y = "Number of cases",
-    x = "Monthly"
+    x = "Monthly[1M]"
   ) +
   theme_minimal() +
   theme(
     plot.title = element_text(size = 10),
     plot.subtitle = element_text(size = 9, colour = "#706E6D"),
     axis.title.y = element_text(size = 10, margin = margin(r = 5)),
-    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+    axis.title.x = element_text(size = 10, margin = margin(r = 5)),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8)
   )
 
 ################################ End of workflow ###############################
