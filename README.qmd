@@ -12,7 +12,8 @@ In this repo, I forecast the caseload of severe acute malnutrition (SAM) in Soma
 
 Forecasts are done for an horizon of 12 months, as of January 2025, and they are split into the four main Somalia livelihood systems. A glance in the forecasted SAM cases in one livelihood system is shown below:
 
-![](data-raw/forecast.jpeg)
+![](data-raw/forecast.jpeg)  
+
 
 ## Repository Structure
 + `raw-data/`: a data frame of the input data. This is encrypted. 

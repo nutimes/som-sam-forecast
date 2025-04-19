@@ -6,16 +6,16 @@
 
 Hello, welcome to this repo!
 
-In this repo, I forecast what the caseload of severe acute malnutrition
-(SAM) would be in the months of January and December of 2025 in Somalia,
-based on the information available in the historical SAM admissions from
-the past 72 months (5 years) using a time series forecasting approach.
-The model does not try to account for new external inputs (dynamic or
-adaptative forecasting) nor it tries to find any drivers (explanatory
+In this repo, I forecast the caseload of severe acute malnutrition (SAM)
+in Somalia in January and December 2025, based on the information
+available in the historical SAM admissions from the past 72 months (5
+years). The model does not try to account for new external inputs
+(dynamic or adaptative forecasting) or find any drivers (explanatory
 forecasting). This is a pure time series model.
 
-Forecasts are done for an horizon of 12 months, as of January 2025.
-Forecasts are split into the four main Somalia livelihood systems:
+Forecasts are done for an horizon of 12 months, as of January 2025, and
+they are split into the four main Somalia livelihood systems. A glance
+in the forecasted SAM cases in one livelihood system is shown below:
 
 ![](data-raw/forecast.jpeg)
 
