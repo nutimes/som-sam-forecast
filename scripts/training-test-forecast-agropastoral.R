@@ -109,14 +109,9 @@ fit_agropasto |>
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
-x <- fit_agropasto |>
+fit_agropasto |>
   augment() |>
   filter(.model == "auto") |>
-  mutate(
-    .fitted = inv_box_cox(x = .fitted, lambda = lambda_agropasto)
-  )
-
-x |>
   features(
     .var = .innov,
     features = ljung_box,
@@ -126,7 +121,7 @@ x |>
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-out_samp_forecast_agropasto <- fit_agropasto |>
+forecast_agropasto <- fit_agropasto |>
   forecast(h = nrow(test_data_agropasto))
 
 
@@ -139,7 +134,7 @@ fit_agropasto |>
 
 ### -------------------------------- Evaluate out-of-sample forecast errors ----
 
-out_samp_forecast_agropasto |>
+forecast_agropasto |>
   filter(.model == "auto") |>
   accuracy(test_data_agropasto |> select(-sam_admissions))
 
@@ -222,22 +217,15 @@ forecast_agropasto |>
     values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
   ) +
   geom_line(
-    data = x,
+    data = augment(fit_agropasto_full) |>
+      mutate(.fitted = inv_box_cox(x = .fitted, lambda = lambda_agropasto)),
     aes(x = Monthly, y = .fitted, colour = "Fitted values")
-  ) +
-  geom_line(
-    data = out_samp_forecast_agropasto |>
-      filter(.model == "auto") |>
-      mutate(.mean = inv_box_cox(x = .mean, lambda = lambda_agropasto)),
-    aes(x = Monthly, y = .mean, colour = "Out-of-sample forecast"),
-    linetype = "dashed"
   ) +
   scale_colour_manual(
     name = "Series",
     values = c(
       "Observed admissions" = "black",
       "Fitted values" = "#E69F00",
-      "Out-of-sample forecast" = "#D55E00",
       "Forecast mean" = "#0072B2"
     )
   ) +
@@ -245,7 +233,7 @@ forecast_agropasto |>
     title = "Forecasted SAM admissions into the program in the agropastoral livelihood systems",
     subtitle = "Time horizon: from January to December 2025",
     y = "Number of cases",
-    x = "Monthly"
+    x = "Monthly[1M]"
   ) +
   theme_minimal() +
   theme(

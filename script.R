@@ -47,9 +47,9 @@ source("scripts/split-training-test-data.R")
 ## ---- Forecasts --------------------------------------------------------------
 
 source("scripts/training-test-forecast-pastoral.R")
-source("scripts/arima-training-test-forecast-agropastoral.R")
-source("scripts/arima-training-test-forecast-riverine.R")
-source("scripts/arima-training-test-forecast-urbanidps.R")
+source("scripts/training-test-forecast-agropastoral.R")
+source("scripts/training-test-forecast-riverine.R")
+source("scripts/training-test-forecast-urbanidps.R")
 
 
 ################################ End of workflow ###############################

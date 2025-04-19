@@ -117,14 +117,9 @@ fit_urbanidps |>
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
-idps <- fit_urbanidps |>
+fit_urbanidps |>
   augment() |>
   filter(.model == "sets") |>
-  mutate(
-    .fitted = inv_box_cox(.fitted, lambda_urbanidps)
-  )
-
-idps |>
   features(
     .var = .innov,
     features = ljung_box,
@@ -135,7 +130,7 @@ idps |>
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-out_samp_forecast_urbanidps <- fit_urbanidps |>
+forecast_urbanidps <- fit_urbanidps |>
   forecast(h = nrow(test_data_urbanidps))
 
 
@@ -148,7 +143,7 @@ fit_urbanidps |>
 
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
-out_samp_forecast_urbanidps |>
+forecast_urbanidps |>
   filter(.model == "auto") |>
   accuracy(test_data_urbanidps)
 
@@ -160,10 +155,6 @@ fit_urbanidps_full <- grouped_admissions |>
   model(
     auto = ARIMA(.admissions ~ pdq(0, 1, 1) + PDQ(0, 0, 1))
   )
-
-### ------------------------------------------------------ Extract features ----
-fit_urbanidps_full <- fit_urbanidps_full |>
-  augment()
 
 ### --- Forecast future admissions cases into program: January to December 2025
 
@@ -234,8 +225,7 @@ forecast_urbanidps |>
     values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
   ) +
   geom_line(
-    data = fit_urbanidps_full |>
-      filter(.model == "auto") |>
+    data = augment(fit_urbanidps_full) |>
       mutate(.fitted = inv_box_cox(x = .fitted, lambda = lambda_urbanidps)),
     aes(x = Monthly, y = .fitted, colour = "Fitted values")
   ) +

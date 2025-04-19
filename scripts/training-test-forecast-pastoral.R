@@ -108,14 +108,9 @@ fit_pasto |>
 
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
-p <- fit_pasto |>
+fit_pasto |>
   augment() |>
   filter(.model == "arima011011") |>
-  mutate(
-    .fitted = inv_box_cox(x = .fitted, lambda = lambda_pasto)
-  )
-
-p |>
   features(
     .var = .innov,
     features = ljung_box,
@@ -125,7 +120,7 @@ p |>
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-out_samp_forecast_pasto <- fit_pasto |>
+forecast_pasto <- fit_pasto |>
   forecast(h = nrow(test_data_pasto))
 
 
@@ -138,7 +133,7 @@ fit_pasto |>
 
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
-out_samp_forecast_forecast_pasto |>
+forecast_pasto |>
   filter(.model == "arima011011") |>
   accuracy(test_data_pasto)
 
@@ -221,22 +216,15 @@ forecast_pasto |>
     values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
   ) +
   geom_line(
-    data = p,
+    data = augment(fit_pasto_full) |>
+      mutate(.fitted = inv_box_cox(x = .fitted, lambda = lambda_pasto)),
     aes(x = Monthly, y = .fitted, colour = "Fitted values")
-  ) +
-  geom_line(
-    data = out_samp_forecast_pasto |>
-      filter(.model == "arima011011") |>
-      mutate(.mean = inv_box_cox(x = .mean, lambda = lambda_pasto)),
-    aes(x = Monthly, y = .mean, colour = "Out-of-sample forecast"),
-    linetype = "dashed"
   ) +
   scale_colour_manual(
     name = "Series",
     values = c(
       "Observed admissions" = "black",
       "Fitted values" = "#E69F00",
-      "Out-of-sample forecast" = "#D55E00",
       "Forecast mean" = "#0072B2"
     )
   ) +
