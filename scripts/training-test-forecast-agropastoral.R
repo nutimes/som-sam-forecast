@@ -109,14 +109,24 @@ fit_agropasto |>
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
-augment(fit_agropasto) |>
+x <- fit_agropasto |>
+  augment() |>
   filter(.model == "auto") |>
-  features(.innov, ljung_box, lag = 36, def = 1)
+  mutate(
+    .fitted = inv_box_cox(x = .fitted, lambda = lambda_agropasto)
+  )
 
+x |>
+  features(
+    .var = .innov,
+    features = ljung_box,
+    lag = 36,
+    def = 1
+  )
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-forecast_agropasto <- fit_agropasto |>
+out_samp_forecast_agropasto <- fit_agropasto |>
   forecast(h = nrow(test_data_agropasto))
 
 
@@ -127,23 +137,23 @@ fit_agropasto |>
   accuracy()
 
 
-### ----------------------------------- Evaluate out-sample forecast errors ----
+### -------------------------------- Evaluate out-of-sample forecast errors ----
 
-forecast_agropasto |>
+out_samp_forecast_agropasto |>
   filter(.model == "auto") |>
-  accuracy(test_data_agropasto)
+  accuracy(test_data_agropasto |> select(-sam_admissions))
 
 
 ## ---- Refit model on full data -----------------------------------------------
 
-fit_agropasto_full <- grouped_admissions |> 
-  subset(lsystems == "Agropastoral") |> 
+fit_agropasto_full <- grouped_admissions |>
+  subset(lsystems == "Agropastoral") |>
   model(
-    auto = ARIMA(.admissions ~ pdq(0,1,1) + PDQ(0,0,1))
+    auto = ARIMA(.admissions ~ pdq(0, 1, 1) + PDQ(0, 0, 1))
   )
 
 
-### --- Forecast future admissions cases into program: January to December 2025 
+### --- Forecast future admissions cases into program: January to December 2025
 
 forecast_agropasto <- forecast(
   object = fit_agropasto_full,
@@ -199,18 +209,37 @@ forecast_agropasto |>
     alpha = 0.5
   ) +
   geom_line(
-    aes(x = Monthly, y = mean_inv),
-    color = "blue", alpha = 0.6
+    aes(x = Monthly, y = mean_inv, colour = "Forecast mean"),
+    alpha = 0.6
   ) +
   geom_line(
-    data = grouped_admissions |> 
+    data = grouped_admissions |>
       subset(lsystems == "Agropastoral"),
-    aes(x = Monthly, y = sam_admissions),
-    color = "black"
+    aes(x = Monthly, y = sam_admissions, colour = "Observed admissions"),
   ) +
   scale_fill_manual(
     name = "Confidence Interval",
     values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
+  ) +
+  geom_line(
+    data = x,
+    aes(x = Monthly, y = .fitted, colour = "Fitted values")
+  ) +
+  geom_line(
+    data = out_samp_forecast_agropasto |>
+      filter(.model == "auto") |>
+      mutate(.mean = inv_box_cox(x = .mean, lambda = lambda_agropasto)),
+    aes(x = Monthly, y = .mean, colour = "Out-of-sample forecast"),
+    linetype = "dashed"
+  ) +
+  scale_colour_manual(
+    name = "Series",
+    values = c(
+      "Observed admissions" = "black",
+      "Fitted values" = "#E69F00",
+      "Out-of-sample forecast" = "#D55E00",
+      "Forecast mean" = "#0072B2"
+    )
   ) +
   labs(
     title = "Forecasted SAM admissions into the program in the agropastoral livelihood systems",
@@ -223,7 +252,9 @@ forecast_agropasto |>
     plot.title = element_text(size = 10),
     plot.subtitle = element_text(size = 9, colour = "#706E6D"),
     axis.title.y = element_text(size = 10, margin = margin(r = 5)),
-    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+    axis.title.x = element_text(size = 10, margin = margin(r = 5)),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8)
   )
 
 ################################ End of workflow ###############################
