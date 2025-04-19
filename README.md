@@ -1,2 +1,78 @@
-# Looking ahead: future program cases
-## A glimpse into the next six-months program cases in Somalia's SAM treatment program
+
+
+# Looking ahead: future severe acute malnutrition (SAM) cases into the treatment program in Somalia
+
+## A time series-based forecast
+
+Hello, welcome to this repo!
+
+In this repo, I forecast what the caseload of severe acute malnutrition
+(SAM) would be in the months of January and December of 2025 in Somalia,
+based on the information available in the historical SAM admissions from
+the past 72 months (5 years) using a time series forecasting approach.
+The model does not try to account for new external inputs (dynamic or
+adaptative forecasting) nor it tries to find any drivers (explanatory
+forecasting). This is a pure time series model.
+
+Forecasts are done for an horizon of 12 months, as of January 2025.
+Forecasts are split into the four main Somalia livelihood systems:
+
+![](data-raw/forecast.jpeg)
+
+## Repository Structure
+
+- `raw-data/`: a data frame of the input data. This is encrypted.
+- `R/`: some handy user-defined functions.
+- `scripts/`: a set of `R` scripts. These are split into different
+  files, based on the specific task that they execute.
+
+The following workflow is recommended:
+
+``` mermaid
+flowchart LR
+A(Retrieve secret key for decryption)
+B(Load project-specific functions.R)
+C(Run read-in-data.R)
+D(Run data-wrangling.R)
+E(Run exploratory-data-analysis.R)
+F(Run decomposition.R)
+G(Run split-training-test-data.R)
+H(Run arima-training-test-forecast-*.R)
+
+  A --> B --> C --> D --> E --> F --> G --> H
+```
+
+The above flowchart can be implemented simply by running the `scrip.R`
+file found in the root directory.
+
+## Reproducibility information
+
+The repository was created in `R` version 4.5.0 This project uses the
+`{renv}` framework to record `R` package dependencies and versions.
+Packages and versions used are recorded in `renv.lock` and code used to
+manage dependencies is in `renv/` and other files in the root project
+directory. On starting an `R` session in the working directory, run
+`renv::restore()` to install R package dependencies.
+
+## Data encryption
+
+This project uses `{cyphr}` to encrypt the raw data that lives in
+`data-raw/` directory. In order to be able to access and decrypt the
+encrypted data, the user will need to have created their own personal
+SSH key and make a request to be added to the project. An easy-to-grasp
+guide on how to make a request will be found
+[here](https://github.com/OxfordIHTM/cyphr-encryption-demonstration#)
+
+## License
+
+This repository is licensed under a GNU General Public License 3
+(GPL-3).
+
+## Feedback
+
+If you wish to give feedback, file an issue or seek support, kindly do
+so [here](https://github.com/nutspatial/ugd-karamoja-amn-interp/issues).
+
+## Author
+
+Tomás Zaba

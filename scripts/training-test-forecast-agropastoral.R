@@ -1,5 +1,5 @@
 ################################################################################
-#       TRAIN, TEST MODEL AND FORECAST - RIVERINE LIVELIHOOD SYSTEM        #
+#       TRAIN, TEST MODEL AND FORECAST - AGROPASTORAL LIVELIHOOD SYSTEM        #
 ################################################################################
 
 
@@ -9,7 +9,7 @@
 
 
 grouped_admissions |>
-  filter(lsystems == "Riverine") |>
+  filter(lsystems == "Agropastoral") |>
   ACF(
     y = sam_admissions,
     type = "correlation",
@@ -28,10 +28,9 @@ grouped_admissions |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
-
 ### --------------------- Apply seasonal differencing using training dataset ---
 
-train_data_riverine |>
+train_data_agropasto |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -41,7 +40,7 @@ train_data_riverine |>
   autoplot(.vars = .admissions) +
   labs(
     title = "Seasonal differenced time serie",
-    subtitle = "It shows a constant variance across the series"
+    subtitle = "It shows constant variance across the series"
   ) +
   theme(
     plot.caption = element_text(colour = "#706E6D"),
@@ -52,7 +51,7 @@ train_data_riverine |>
 
 ### ---------------------------------------------------- ACF and PACF plots ----
 
-train_data_riverine |>
+train_data_agropasto |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -60,15 +59,14 @@ train_data_riverine |>
     ) |> difference(1)
   ) |>
   gg_tsdisplay(y = .admissions, plot_type = "partial", lag_max = 36) +
-  labs(title = "Riverine livelihood system")
+  labs(title = "Agropastoral livelihood system")
 
 # Candidate models selected based on ACF (MA) and PACF (AR):
-# ARIMA(0,1,1)(0,1,2)[12] or ARIMA(1,1,0)(0,1,0)
-
+# ARIMA(0,1,0)(0,1,0)[12]
 
 ### ------------------------------ Test if the time series is a white noise ----
 
-train_data_riverine |>
+train_data_agropasto |>
   mutate(
     .admissions = do.call(
       what = difference,
@@ -80,92 +78,96 @@ train_data_riverine |>
 
 ## ---- Fit a Seasonal ARIMA model ---------------------------------------------
 
-fit_riverine <- train_data_riverine |>
+fit_agropasto <- train_data_agropasto |>
   model(
     sets = ETS(
       formula = .admissions ~ error("A") + trend("Ad") + season("A")
     ),
-    arima011010 = ARIMA(
-      formula = .admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 0)
-    ),
-    arima110010 = ARIMA(
-      formula = .admissions ~ pdq(1, 1, 0) + PDQ(0, 1, 0)
+    arima010010 = ARIMA(
+      formula = .admissions ~ pdq(0, 1, 0) + PDQ(0, 1, 0)
     ),
     auto = ARIMA(
       formula = .admissions, stepwise = FALSE, approximation = FALSE
     )
   )
 
+
 ### ----------------------- Identify the best model-fit amongst the others -----
 
-glance(fit_riverine) |>
+glance(fit_agropasto) |>
   arrange(AICc) |>
   select(.model:BIC)
 
-# .model arima110010 had the lowest AICc - best model.
+# .model arima010011 had the lowest AICc - best model.
 
 ### -------------------------- Diganose residuals (white noise?) using plot ----
 
-fit_riverine |>
+fit_agropasto |>
   select(auto) |>
   gg_tsresiduals(lag = 36)
 
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
-augment(fit_riverine) |>
-  filter(.model == "arima110010") |>
-  features(.innov, ljung_box, lag = 36, def = 1)
+fit_agropasto |>
+  augment() |>
+  filter(.model == "auto") |>
+  features(
+    .var = .innov,
+    features = ljung_box,
+    lag = 36,
+    def = 1
+  )
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-forecast_riverine <- fit_riverine |>
-  forecast(h = nrow(test_data_riverine))
+forecast_agropasto <- fit_agropasto |>
+  forecast(h = nrow(test_data_agropasto))
 
 
 ### ------------------------------------ Evaluate in-sample forecast errors ----
 
-fit_riverine |>
+fit_agropasto |>
   select(auto) |>
   accuracy()
 
 
-### ----------------------------------- Evaluate out-sample forecast errors ----
+### -------------------------------- Evaluate out-of-sample forecast errors ----
 
-forecast_riverine |>
-  filter(.model == "arima110010") |>
-  accuracy(test_data_riverine)
+forecast_agropasto |>
+  filter(.model == "auto") |>
+  accuracy(test_data_agropasto |> select(-sam_admissions))
 
 
 ## ---- Refit model on full data -----------------------------------------------
 
-fit_riverine_full <- grouped_admissions |> 
-  subset(lsystems == "Riverine") |> 
+fit_agropasto_full <- grouped_admissions |>
+  subset(lsystems == "Agropastoral") |>
   model(
-    auto = ARIMA(.admissions ~ pdq(0,1,1) + PDQ(0,0,1))
+    auto = ARIMA(.admissions ~ pdq(0, 1, 1) + PDQ(0, 0, 1))
   )
 
 
-### --- Forecast future admissions cases into program: January to December 2025 
+### --- Forecast future admissions cases into program: January to December 2025
 
-forecast_riverine <- forecast(
-  object = fit_riverine_full,
+forecast_agropasto <- forecast(
+  object = fit_agropasto_full,
   h = 12
 )
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
 
-forecast_riverine <- forecast_riverine |>
+forecast_agropasto <- forecast_agropasto |>
   hilo(level = c(80, 95)) |>
   unpack_hilo("80%") |>
   unpack_hilo("95%") |>
   mutate(
-    mean_inv = inv_box_cox(.mean, lambda_riverine),
+    mean_inv = inv_box_cox(.mean, lambda_agropasto),
     across(ends_with(c("_lower", "_upper")),
       ~ inv_box_cox(
         .x,
-        lambda = lambda_riverine
+        lambda = lambda_agropasto
       ),
       .names = "{.col}"
     )
@@ -176,7 +178,7 @@ forecast_riverine <- forecast_riverine |>
 
 ### ------------------------------------------------------------- Tidy data ----
 
-forecast_riverine <- forecast_riverine |>
+forecast_agropasto <- forecast_agropasto |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
     names_to = "interval",
@@ -195,38 +197,52 @@ forecast_riverine <- forecast_riverine |>
 
 ### ------------------------------------------------------ Plot forecasts ----
 
-forecast_riverine |>
+forecast_agropasto |>
   ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
     alpha = 0.5
   ) +
   geom_line(
-    aes(x = Monthly, y = mean_inv),
-    color = "blue", alpha = 0.6
+    aes(x = Monthly, y = mean_inv, colour = "Forecast mean"),
+    alpha = 0.6
   ) +
   geom_line(
-    data = grouped_admissions |> 
-      subset(lsystems == "Riverine"),
-    aes(x = Monthly, y = sam_admissions),
-    color = "black"
+    data = grouped_admissions |>
+      subset(lsystems == "Agropastoral"),
+    aes(x = Monthly, y = sam_admissions, colour = "Observed admissions"),
   ) +
   scale_fill_manual(
     name = "Confidence Interval",
     values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
   ) +
+  geom_line(
+    data = augment(fit_agropasto_full) |>
+      mutate(.fitted = inv_box_cox(x = .fitted, lambda = lambda_agropasto)),
+    aes(x = Monthly, y = .fitted, colour = "Fitted values")
+  ) +
+  scale_colour_manual(
+    name = "Series",
+    values = c(
+      "Observed admissions" = "black",
+      "Fitted values" = "#E69F00",
+      "Forecast mean" = "#0072B2"
+    )
+  ) +
   labs(
-    title = "Forecasted SAM admissions into the program in the riverine livelihood systems",
+    title = "Forecasted SAM admissions into the program in the agropastoral livelihood systems",
     subtitle = "Time horizon: from January to December 2025",
     y = "Number of cases",
-    x = "Monthly"
+    x = "Monthly[1M]"
   ) +
   theme_minimal() +
   theme(
     plot.title = element_text(size = 10),
     plot.subtitle = element_text(size = 9, colour = "#706E6D"),
     axis.title.y = element_text(size = 10, margin = margin(r = 5)),
-    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+    axis.title.x = element_text(size = 10, margin = margin(r = 5)),
+    legend.title = element_text(size = 9),
+    legend.text = element_text(size = 8)
   )
 
 ################################ End of workflow ###############################
