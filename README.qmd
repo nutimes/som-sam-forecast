@@ -14,7 +14,6 @@ Forecasts are done for an horizon of 12 months, as of January 2025, and they are
 
 ![](data-raw/forecast.jpeg)
 
-
 ## Repository Structure
 + `raw-data/`: a data frame of the input data. This is encrypted. 
 + `R/`: some handy user-defined functions.
