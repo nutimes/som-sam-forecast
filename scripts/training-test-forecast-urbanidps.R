@@ -117,14 +117,25 @@ fit_urbanidps |>
 
 ### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
 
-augment(fit_urbanidps) |>
-  filter(.model == "auto") |>
-  features(.innov, ljung_box, lag = 36, def = 1)
+idps <- fit_urbanidps |>
+  augment() |>
+  filter(.model == "sets") |>
+  mutate(
+    .fitted = inv_box_cox(.fitted, lambda_urbanidps)
+  )
+
+idps |>
+  features(
+    .var = .innov,
+    features = ljung_box,
+    lag = 36,
+    def = 1
+  )
 
 
 ### ------------------------------- Forecast: h-steps = the test set period ----
 
-forecast_urbanidps <- fit_urbanidps |>
+out_samp_forecast_urbanidps <- fit_urbanidps |>
   forecast(h = nrow(test_data_urbanidps))
 
 
@@ -137,27 +148,29 @@ fit_urbanidps |>
 
 ### ----------------------------------- Evaluate out-sample forecast errors ----
 
-forecast_urbanidps |>
+out_samp_forecast_urbanidps |>
   filter(.model == "auto") |>
   accuracy(test_data_urbanidps)
 
 
 ## ---- Refit model on full data -----------------------------------------------
 
-fit_urbanidps_full <- grouped_admissions |> 
-  subset(lsystems == "Urban/IDPs") |> 
+fit_urbanidps_full <- grouped_admissions |>
+  subset(lsystems == "Urban/IDPs") |>
   model(
-    auto = ARIMA(.admissions ~ pdq(0,1,1) + PDQ(0,0,1))
+    auto = ARIMA(.admissions ~ pdq(0, 1, 1) + PDQ(0, 0, 1))
   )
 
+### ------------------------------------------------------ Extract features ----
+fit_urbanidps_full <- fit_urbanidps_full |>
+  augment()
 
-### --- Forecast future admissions cases into program: January to December 2025 
+### --- Forecast future admissions cases into program: January to December 2025
 
 forecast_urbanidps <- forecast(
   object = fit_urbanidps_full,
   h = 12
 )
-
 
 
 ### ---------- Reverse box-cox transformation to original admissions scales ----
@@ -201,31 +214,44 @@ forecast_urbanidps <- forecast_urbanidps |>
 
 ### ------------------------------------------------------ Plot forecasts ----
 
-plots <- forecast_urbanidps |>
+forecast_urbanidps |>
   ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
     alpha = 0.5
   ) +
   geom_line(
-    aes(x = Monthly, y = mean_inv),
-    color = "blue", alpha = 0.6
+    aes(x = Monthly, y = mean_inv, colour = "Forecast mean"),
+    alpha = 0.6
   ) +
   geom_line(
-    data = grouped_admissions |> 
+    data = grouped_admissions |>
       subset(lsystems == "Urban/IDPs"),
-    aes(x = Monthly, y = sam_admissions),
-    color = "black"
+    aes(x = Monthly, y = sam_admissions, colour = "Observed admissions")
   ) +
   scale_fill_manual(
     name = "Confidence Interval",
     values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
   ) +
+  geom_line(
+    data = fit_urbanidps_full |>
+      filter(.model == "auto") |>
+      mutate(.fitted = inv_box_cox(x = .fitted, lambda = lambda_urbanidps)),
+    aes(x = Monthly, y = .fitted, colour = "Fitted values")
+  ) +
+  scale_colour_manual(
+    name = "Series",
+    values = c(
+      "Observed admissions" = "black",
+      "Fitted values" = "#E69F00",
+      "Forecast mean" = "#0072B2"
+    )
+  ) +
   labs(
     title = "Forecasted SAM admissions into the program in the Urban/IDPs livelihood systems",
     subtitle = "Time horizon: from January to December 2025",
     y = "Number of cases",
-    x = "Monthly"
+    x = "Monthly[1M]"
   ) +
   theme_minimal() +
   theme(
@@ -236,6 +262,3 @@ plots <- forecast_urbanidps |>
   )
 
 ################################ End of workflow ###############################
-
-
-
