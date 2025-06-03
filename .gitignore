@@ -2,6 +2,7 @@
 .Rproj.user
 
 ## Produced quarto files
-reports/*.htlm
+reports/*.html
 reports/report_files
-/.quarto/
+.quarto/
+.quarto/project-cache
