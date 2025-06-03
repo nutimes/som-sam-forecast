@@ -1,10 +1,11 @@
-################################################################################
-#                                WRANGLE DATA                                  #
-################################################################################
+# ==============================================================================
+#                                WRANGLE DATA                                  
+# ==============================================================================
 
 
-## ---- Tidy the data ----------------------------------------------------------
+## ---- Wrangle the data -------------------------------------------------------
 
+### Put the data in a longer format ---- 
 admissions <- input_data |>
   pivot_longer(
     cols = !c(region, district, lsystems),
@@ -21,39 +22,37 @@ admissions <- input_data |>
   select(-time)
 
 
-## ---- Remove districts with zero admissions ----------------------------------
-
-### --------------------------------------- List of district to be excluded ----
+### Remove districts with zero admissions ----
+#### List of district to be excluded ----
 list <- c(
   "Ceel_Dheere", "Jalalaqsi", "Jamaame", "Kurtunwaarey", "Sablaale",
   "Adan Yabaal", "Bu'aale", "Jilib", "Saakow/Salagle", "Sheik", "Cadale",
   "Xarardheere"
 )
 
-### --------------------------------------------------- Apply the exclusion ----
-
+### Apply the exclusion ----
 admissions <- admissions |>
   filter(!(district %in% list))
 
 ## ---- Summarise admissions ---------------------------------------------------
 
+### Grouped summary by livelihood systems ----
 grouped_admissions <- admissions |>
   summarise_admissions(
     .group = TRUE,
     time = "M"
   )
 
+### Ungrouped summary (national) ----
 ungrouped_admissions <- admissions |>
   summarise_admissions(
     .group = FALSE,
     time = "M"
   )
 
-
 ## ---- Box-Cox transformation to stabilized variance  -------------------------
 
-### -------------------------------------------------------------- National ----
-
+### National ----
 #### Get lambda ----
 lambda_national <- ungrouped_admissions |>
   features(
@@ -62,7 +61,7 @@ lambda_national <- ungrouped_admissions |>
   ) |>
   pull(lambda_guerrero)
 
-### Transform ----
+#### Transform ----
 ungrouped_admissions <- admissions |>
   summarise_admissions(
     .group = FALSE,
@@ -75,8 +74,7 @@ ungrouped_admissions <- admissions |>
     )
   )
 
-### ---------------------------------------------------- livelihood systems ----
-
+### By livelihood systems ----
 ####  Lambda Pastoral ----
 lambda_pasto <- grouped_admissions |>
   filter(lsystems == "Pastoral") |>
@@ -114,8 +112,7 @@ lambda_urbanidps <- grouped_admissions |>
   pull(lambda_guerrero)
 
 
-### ----------------------------------------- Apply row-wise transformation ----
-
+### Apply row-wise transformation ----
 grouped_admissions <- grouped_admissions |>
   mutate(
     .admissions = do.call(
@@ -124,4 +121,4 @@ grouped_admissions <- grouped_admissions |>
     )
   )
 
-############################## End of workflow #################################
+# ============================== End of workflow ===============================

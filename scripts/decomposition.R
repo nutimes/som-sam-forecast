@@ -1,6 +1,6 @@
-################################################################################
-#                          DECOMPOSITE TIME SERIES                             # 
-################################################################################
+# ==============================================================================
+#                          DECOMPOSITE TIME SERIES                             
+# ==============================================================================
 
 ## ---- Decomposition at National level ----------------------------------------
 
@@ -80,7 +80,7 @@ seasonal_cmpnt_national_a2022 <- cmpnts_national |>
 
 ## ---- Decomposition by Livelihood systems ------------------------------------
 
-### -------------------------------------------- Pastoral livelihood system ----
+### Pastoral livelihood system ----
 
 #### Get components ----
 cmpnts_pasto <- grouped_admissions |>
@@ -156,7 +156,7 @@ seasonal_cmpnt_pasto_a2022 <- cmpnts_pasto |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
-### ---------------------------------------- Agropastoral livelihood system ----
+### Agropastoral livelihood system ----
 
 #### Get components ----
 cmpnts_agropasto <- grouped_admissions |>
@@ -230,7 +230,7 @@ seasonal_cmpnt_agropasto_a2022 <- cmpnts_agropasto |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
-### -------------------------------------------- Riverine livelihood system ----
+### Riverine livelihood system ----
 
 #### Get components ----
 cmpnts_riverine <- grouped_admissions |>
@@ -305,7 +305,7 @@ seasonal_cmpnt_riverine_a2022 <- cmpnts_riverine |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
-### ------------------------------------------ Urban/IDPs livelihood system ----
+### Urban/IDPs livelihood system ----
 
 #### Get component ----
 cmpnts_urbanidps <- grouped_admissions |>
@@ -380,4 +380,4 @@ seasonal_cmpnt_urbanidps_a2022 <- cmpnts_urbanidps |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
-############################## End of workflow #################################
+# ============================== End of workflow ===============================
