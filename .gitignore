@@ -6,3 +6,6 @@ reports/*.html
 reports/report_files
 .quarto/
 .quarto/project-cache
+
+## README html
+README.html
