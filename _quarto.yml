@@ -17,3 +17,5 @@ format:
        message: false
      progress: true
      fig-responsive: true
+     transition: fade
+     css: styles-revealjs.css
