@@ -1,4 +1,7 @@
 # Ingore:
 .Rproj.user
 
+## Produced quarto files
+reports/*.htlm
+reports/report_files
 /.quarto/
