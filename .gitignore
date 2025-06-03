@@ -1,2 +1,8 @@
 # Ingore:
 .Rproj.user
+
+## Produced quarto files
+reports/*.html
+reports/report_files
+.quarto/
+.quarto/project-cache

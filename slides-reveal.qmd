@@ -1,0 +1,255 @@
+---
+title: "What if IPC PIN Estimates Captured Their Temporal Evolution Instead of Offering a Static Snapshot?"
+subtitle: "How This Could Help Nutrition Actors Respond More Effectively"
+author: "Tomás Zaba"
+date: today
+format: revealjs
+---
+
+```{r}
+#| label: source-script
+Sys.setenv(path_secret_key = "~/.ssh/id_rsa")
+source(file = "script.R")
+```
+
+## Context
+
+<br> 
+
++ To prevent that a child dies from AMN, anticipdated information on the evolution of AMN is essential
+
++ Current approaches - (NxPxK) and now programme-based - do not provide such information
+
+    - Not even possible to provide # cases by month, quarters, etc.
+
+::: {.callout-note}
+
+Recently, IPC users and decision-makers criticized the fact that IPC estimates were not sensitive to the changes forecasted in the projection period.
+
+:::
+
+# What if all this could be addressed, eventually? 🧐
+
+# Insights from a time series forecasting model using Somalia's six years of admissions data {.smaller}
+
+## Pastoral Livelihood System (1/2)
+### Time plot
+```{r}
+#| label: forecast-pasto
+forecast_pasto_plot
+```
+
+## Pastoral Livelihood System (2/2)
+### A glance at January to December 2025
+
+```{r}
+#| label: forecast-pasto-jan-dec
+forecast_pasto |>
+    filter(year(Monthly) == 2025) |> 
+    ggplot() +
+    geom_ribbon(
+        aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
+        alpha = 0.5
+        ) +
+    geom_line(
+        aes(x = Monthly, y = mean_inv, colour = "Forecast mean"),
+        alpha = 0.6
+        ) +
+  scale_fill_manual(
+    name = "Confidence Interval",
+    values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
+  ) +
+  scale_colour_manual(
+    name = "Series",
+    values = c(
+      "Forecast mean" = "#0072B2"
+    )
+  ) +
+  labs(
+    title = "Forecasted SAM admissions into the programme",
+    subtitle = "Time horizon: from January to December 2025",
+    y = "Number of cases",
+    x = "Monthly[1M]"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D"),
+    axis.title.y = element_text(size = 10, margin = margin(r = 5)),
+    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+  )
+```
+
+## Agro-pastoral Livelihood System (1/2)
+### Time plot
+```{r}
+#| label: forecast-agropasto
+forecast_agropasto_plot
+```
+
+## Agro-pastoral Livelihood System (2/2)
+### A glance at January to December 2025
+
+```{r}
+#| label: forecast-agropasto-jan-dec
+forecast_agropasto |>
+    filter(year(Monthly) == 2025) |> 
+    ggplot() +
+    geom_ribbon(
+        aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
+        alpha = 0.5
+        ) +
+    geom_line(
+        aes(x = Monthly, y = mean_inv, colour = "Forecast mean"),
+        alpha = 0.6
+        ) +
+  scale_fill_manual(
+    name = "Confidence Interval",
+    values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
+  ) +
+  scale_colour_manual(
+    name = "Series",
+    values = c(
+      "Forecast mean" = "#0072B2"
+    )
+  ) +
+  labs(
+    title = "Forecasted SAM admissions into the programme",
+    subtitle = "Time horizon: from January to December 2025",
+    y = "Number of cases",
+    x = "Monthly[1M]"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D"),
+    axis.title.y = element_text(size = 10, margin = margin(r = 5)),
+    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+  )
+```
+
+## Riverine Livelihood System (1/2)
+### Time plot
+```{r}
+#| label: forecast-riverine
+forecast_riverine_plot
+```
+
+## Riverine Livelihood System (2/2)
+### A glance at January to December 2025
+
+```{r}
+#| label: forecast-riverine-jan-dec
+forecast_riverine |>
+    filter(year(Monthly) == 2025) |> 
+    ggplot() +
+    geom_ribbon(
+        aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
+        alpha = 0.5
+        ) +
+    geom_line(
+        aes(x = Monthly, y = mean_inv, colour = "Forecast mean"),
+        alpha = 0.6
+        ) +
+  scale_fill_manual(
+    name = "Confidence Interval",
+    values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
+  ) +
+  scale_colour_manual(
+    name = "Series",
+    values = c(
+      "Forecast mean" = "#0072B2"
+    )
+  ) +
+  labs(
+    title = "Forecasted SAM admissions into the programme",
+    subtitle = "Time horizon: from January to December 2025",
+    y = "Number of cases",
+    x = "Monthly[1M]"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D"),
+    axis.title.y = element_text(size = 10, margin = margin(r = 5)),
+    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+  )
+```
+
+## Urban/IDPs Livelihood System (1/2)
+### Time plot
+```{r}
+#| label: forecast-urban/idps
+forecast_urbanidps_plot
+```
+
+## Urban/IDPs Livelihood System (2/2)
+### A glance at January to December 2025
+
+```{r}
+#| label: forecast-urban-idps-jan-dec
+forecast_urbanidps |>
+    filter(year(Monthly) == 2025) |> 
+    ggplot() +
+    geom_ribbon(
+        aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
+        alpha = 0.5
+        ) +
+    geom_line(
+        aes(x = Monthly, y = mean_inv, colour = "Forecast mean"),
+        alpha = 0.6
+        ) +
+  scale_fill_manual(
+    name = "Confidence Interval",
+    values = c("80%" = "#1F77B4", "95%" = "#AEC7E8")
+  ) +
+  scale_colour_manual(
+    name = "Series",
+    values = c(
+      "Forecast mean" = "#0072B2"
+    )
+  ) +
+  labs(
+    title = "Forecasted SAM admissions into the programme",
+    subtitle = "Time horizon: from January to December 2025",
+    y = "Number of cases",
+    x = "Monthly[1M]"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 10),
+    plot.subtitle = element_text(size = 9, colour = "#706E6D"),
+    axis.title.y = element_text(size = 10, margin = margin(r = 5)),
+    axis.title.x = element_text(size = 10, margin = margin(r = 5))
+  )
+```
+
+# The above is just the caseload, not the actual burden or PIN... {.smaller}
+
+<br> 
+
+$PIN = \text{forecast} * \frac{\text{1}}{\text{programme coverage}}$
+
+
+
+## Advantages and Disadvantages {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%" style="text-align: left"}
+### Advantages
++ It uses programme-based-only data to estimate caseloads
++ It provides estimates by month
+    - Makes possible to get **estimates for current** and for **projection** by taking the forecasts in the period that corresponds to current and projection, respectively
++ Useful for fundraising, and to scale-up programme response for when a rise is expected
++ Useful for risk monitoring
+:::
+
+::: {.column}
+### Disadvantages
++ The model used does not account for incoming shocks, but there are other models to be explored
+:::
+
+:::: 
+
+# How are you processing all of this? 🤨 🧐
