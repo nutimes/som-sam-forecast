@@ -175,7 +175,7 @@ forecast_riverine <- forecast_riverine |>
   )
 
 ### Plot forecasts ----
-forecast_riverine |>
+forecast_riverine_plot <- forecast_riverine |>
   ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),

@@ -180,7 +180,7 @@ forecast_pasto <- forecast_pasto |>
   )
 
 ### Plot forecasts ----
-forecast_pasto |>
+forecast_pasto_plot <- forecast_pasto |>
   ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),

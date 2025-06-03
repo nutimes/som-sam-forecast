@@ -177,7 +177,7 @@ forecast_agropasto <- forecast_agropasto |>
   )
 
 ### Plot forecasts ----
-forecast_agropasto |>
+forecast_agropasto_plot <- forecast_agropasto |>
   ggplot() +
   geom_ribbon(
     aes(x = Monthly, ymin = lower, ymax = upper, fill = level),
