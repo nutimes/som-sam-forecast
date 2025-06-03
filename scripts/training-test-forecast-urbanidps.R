@@ -1,13 +1,11 @@
-################################################################################
-#         TRAIN, TEST MODEL AND FORECAST - URBAN/IDP LIVELIHOOD SYSTEM         #
-################################################################################
+# ==============================================================================
+#         TRAIN, TEST MODEL AND FORECAST - URBAN/IDP LIVELIHOOD SYSTEM         
+# ==============================================================================
 
 
 ## ---- Check assumptions for stationarity and select candidate models ---------
 
-### ----------------------------------- ACF plot of the original admissions ----
-
-
+### ACF plot of the original admissions ----
 grouped_admissions |>
   filter(lsystems == "Urban/IDPs") |>
   ACF(
@@ -29,8 +27,9 @@ grouped_admissions |>
   )
 
 
-### --------------------- Apply seasonal differencing using training dataset ---
+## ---- Apply seasonal differencing using training dataset ---------------------
 
+### Differencing ----
 train_data_urbanidps |>
   mutate(
     .admissions = do.call(
@@ -50,8 +49,7 @@ train_data_urbanidps |>
   )
 
 
-### ---------------------------------------------------- ACF and PACF plots ----
-
+### ACF and PACF plots ----
 train_data_urbanidps |>
   mutate(
     .admissions = do.call(
@@ -66,8 +64,7 @@ train_data_urbanidps |>
 # ARIMA(0,1,1)(0,1,2)[12] or ARIMA(1,1,0)(0,1,0)
 
 
-### ------------------------------ Test if the time series is a white noise ----
-
+### Test if the time series is a white noise ----
 train_data_urbanidps |>
   mutate(
     .admissions = do.call(
@@ -78,8 +75,9 @@ train_data_urbanidps |>
   features(.var = .admissions, ljung_box, lag = 10)
 
 
-## ---- Fit a Seasonal ARIMA model ---------------------------------------------
+## ---- Fit a forecasting model  -----------------------------------------------
 
+### Seasonal ARIMA ----
 fit_urbanidps <- train_data_urbanidps |>
   model(
     sets = ETS(
@@ -99,24 +97,20 @@ fit_urbanidps <- train_data_urbanidps |>
     )
   )
 
-
-### ----------------------- Identify the best model-fit amongst the others -----
-
+### Identify the best model-fit amongst the others ----
 glance(fit_urbanidps) |>
   arrange(AICc) |>
   select(.model:BIC)
 
 # .model auto had the lowest AICc - best model.
 
-### -------------------------- Diganose residuals (white noise?) using plot ----
-
+### Diganose residuals (white noise?) using plot ----
 fit_urbanidps |>
   select(auto) |>
   gg_tsresiduals(lag = 36)
 
 
-### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
-
+### Diagnose residuals (white noise?) using a formal hypothesis testing ----
 fit_urbanidps |>
   augment() |>
   filter(.model == "sets") |>
@@ -127,22 +121,16 @@ fit_urbanidps |>
     def = 1
   )
 
-
-### ------------------------------- Forecast: h-steps = the test set period ----
-
+### Forecast: h-steps = the test set period ----
 forecast_urbanidps <- fit_urbanidps |>
   forecast(h = nrow(test_data_urbanidps))
 
-
-### ------------------------------------ Evaluate in-sample forecast errors ----
-
+### Evaluate in-sample forecast errors ----
 fit_urbanidps |>
   select(auto) |>
   accuracy()
 
-
-### ----------------------------------- Evaluate out-sample forecast errors ----
-
+### Evaluate out-sample forecast errors ----
 forecast_urbanidps |>
   filter(.model == "auto") |>
   accuracy(test_data_urbanidps)
@@ -150,22 +138,20 @@ forecast_urbanidps |>
 
 ## ---- Refit model on full data -----------------------------------------------
 
+### Re-fit to get the actual forecasts ----
 fit_urbanidps_full <- grouped_admissions |>
   subset(lsystems == "Urban/IDPs") |>
   model(
     auto = ARIMA(.admissions ~ pdq(0, 1, 1) + PDQ(0, 0, 1))
   )
 
-### --- Forecast future admissions cases into program: January to December 2025
-
+### Forecast future admissions cases into program: January to December 2025 ----
 forecast_urbanidps <- forecast(
   object = fit_urbanidps_full,
   h = 12
 )
 
-
-### ---------- Reverse box-cox transformation to original admissions scales ----
-
+### Reverse box-cox transformation to original admissions scales ----
 forecast_urbanidps <- forecast_urbanidps |>
   hilo(level = c(80, 95)) |>
   unpack_hilo("80%") |>
@@ -184,8 +170,7 @@ forecast_urbanidps <- forecast_urbanidps |>
 
 ## ---- Visualize forecasts ----------------------------------------------------
 
-### ------------------------------------------------------------- Tidy data ----
-
+### Tidy data ----
 forecast_urbanidps <- forecast_urbanidps |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
@@ -203,8 +188,7 @@ forecast_urbanidps <- forecast_urbanidps |>
   )
 
 
-### ------------------------------------------------------ Plot forecasts ----
-
+### Plot forecasts ----
 forecast_urbanidps |>
   ggplot() +
   geom_ribbon(
@@ -251,4 +235,4 @@ forecast_urbanidps |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
-################################ End of workflow ###############################
+# ============================== End of workflow ===============================

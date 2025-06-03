@@ -1,12 +1,10 @@
-################################################################################
-#          TRAIN, TEST MODEL AND FORECAST - PASTORAL LIVELIHOOD SYSTEM         #
-################################################################################
-
+# ==============================================================================
+#          TRAIN, TEST MODEL AND FORECAST - PASTORAL LIVELIHOOD SYSTEM         
+# ==============================================================================
 
 ## ---- Check assumptions for stationarity and select candidate models ---------
 
-### ----------------------------------- ACF plot of the original admissions ----
-
+### ACF plot of the original admissions ----
 grouped_admissions |>
   filter(lsystems == "Pastoral") |>
   ACF(
@@ -27,8 +25,9 @@ grouped_admissions |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
-## --------------------- Apply seasonal differencing using training dataset ----
+## ---- Apply seasonal differencing using training dataset ---------------------
 
+### Differencing ----
 train_data_pasto |>
   mutate(
     .admissions = do.call(
@@ -47,8 +46,7 @@ train_data_pasto |>
     plot.subtitle = element_text(colour = "#706E6D")
   )
 
-### ---------------------------------------------------- ACF and PACF plots ----
-
+### ACF and PACF plots ----
 train_data_pasto |>
   mutate(
     .admissions = do.call(
@@ -62,8 +60,7 @@ train_data_pasto |>
 # Candidate models selected based on ACF (MA) and PACF (AR):
 # ARIMA(0,1,1)(0,1,1)[12] and ARIMA(1,1,0)(1,1,0)[12]
 
-### ------------------------------ Test if the time series is a white noise ----
-
+### Test if the time series is a white noise ----
 train_data_pasto |>
   mutate(
     .admissions = do.call(
@@ -74,8 +71,9 @@ train_data_pasto |>
   features(.var = .admissions, ljung_box, lag = 10)
 
 
-## ---- Fit a Seasonal ARIMA model ---------------------------------------------
+## ---- Fit a forecasting model ------------------------------------------------
 
+### Seasonal ARIMA model ----
 fit_pasto <- train_data_pasto |>
   model(
     sets = ETS(
@@ -92,22 +90,19 @@ fit_pasto <- train_data_pasto |>
     )
   )
 
-### ----------------------- Identify the best model-fit amongst the others -----
-
+### Identify the best model-fit amongst the others -----
 glance(fit_pasto) |>
   arrange(AICc) |>
   select(.model:BIC)
 
 # .model arima010011 had the lowest AICc - best model.
 
-### -------------------------- Diganose residuals (white noise?) using plot ----
-
+### Diganose residuals (white noise?) using plot ----
 fit_pasto |>
   select(arima011011) |>
   gg_tsresiduals(lag = 36)
 
-
-### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
+### Diagnose residuals (white noise?) using a formal hypothesis testing ----
 fit_pasto |>
   augment() |>
   filter(.model == "arima011011") |>
@@ -118,21 +113,16 @@ fit_pasto |>
     def = 1
   )
 
-### ------------------------------- Forecast: h-steps = the test set period ----
-
+### Forecast: h-steps = the test set period ----
 forecast_pasto <- fit_pasto |>
   forecast(h = nrow(test_data_pasto))
 
-
-### ------------------------------------ Evaluate in-sample forecast errors ----
-
+### Evaluate in-sample forecast errors ----
 fit_pasto |>
   select(arima011011) |>
   accuracy()
 
-
-### ----------------------------------- Evaluate out-sample forecast errors ----
-
+### Evaluate out-sample forecast errors ----
 forecast_pasto |>
   filter(.model == "arima011011") |>
   accuracy(test_data_pasto)
@@ -140,23 +130,20 @@ forecast_pasto |>
 
 ## ---- Refit model on full data -----------------------------------------------
 
+### Refit to get the actual forecasts ----
 fit_pasto_full <- grouped_admissions |>
   subset(lsystems == "Pastoral") |>
   model(
     arima011011 = ARIMA(.admissions ~ pdq(0, 1, 1) + PDQ(0, 1, 1))
   )
 
-
-### --- Forecast future admissions cases into program: January to December 2025
-
+### Forecast future admissions cases into program: January to December 2025 ----
 forecast_pasto <- forecast(
   object = fit_pasto_full,
   h = 12
 )
 
-
-### ---------- Reverse box-cox transformation to original admissions scales ----
-
+### Reverse box-cox transformation to original admissions scales ----
 forecast_pasto <- forecast_pasto |>
   hilo(level = c(80, 95)) |>
   unpack_hilo("80%") |>
@@ -175,8 +162,7 @@ forecast_pasto <- forecast_pasto |>
 
 ## ---- Visualize forecasts ----------------------------------------------------
 
-### ------------------------------------------------------------- Tidy data ----
-
+### Tidy data ----
 forecast_pasto <- forecast_pasto |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
@@ -193,9 +179,7 @@ forecast_pasto <- forecast_pasto |>
     values_from = value
   )
 
-
-### ------------------------------------------------------ Plot forecasts ----
-
+### Plot forecasts ----
 forecast_pasto |>
   ggplot() +
   geom_ribbon(
@@ -244,4 +228,4 @@ forecast_pasto |>
     legend.text = element_text(size = 8)
   )
 
-################################ End of workflow ###############################
+# ============================== End of workflow ===============================

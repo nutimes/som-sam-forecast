@@ -1,6 +1,6 @@
-################################################################################
-#                     CREATE MAP OF THE LIVELIHOOD SYSTEM                      #
-################################################################################
+# ==============================================================================
+#                     CREATE MAP OF THE LIVELIHOOD SYSTEM                      
+# ==============================================================================
 
 
 ## ---- Transform Somalia CRS to UTM -------------------------------------------
@@ -12,16 +12,14 @@ somalia <- st_transform(
 
 ## ---- Plot a map of the excluded districts -----------------------------------
 
-### -------------------------------------------- List of excluded districts ----
-
+### List of excluded districts ----
 excluded <- c(
   "Ceel Dheer", "Jalalaqsi", "Jamaame", "Kurtunwaarey", "Sablaale",
   "Adan Yabaal", "Bu'aale", "Jilib", "Saakow", "Sheikh", "Cadale",
   "Xarardheere"
 )
 
-### ------------------------------------------------------------ Plot a map ----
-
+### Plot a map ----
 map_incl_excl <- somalia |>
   mutate(
     inc_exc = ifelse(ADM2_EN %in% excluded, 1, 0),
@@ -49,11 +47,9 @@ map_incl_excl <- somalia |>
     plot.title = element_text(size = 14, face = "bold")
   )
 
-## ---- Plot a map of livelihood systems ---------------------------------------
-
-### --------------------------- List of districts in each livelihood system ----
-
-#### Pastoral ----
+### Plot a map of livelihood systems ----
+#### List of districts in each livelihood system ----
+##### Pastoral ----
 wrong_p <- c("Laas_Caanood", "Ceel_Afweyn", "Ceel_Waaq", "Belet_Xaawo")
 correct_p <- c("Laas Caanood", "Ceel Afweyn", "Ceel Waaq", "Belet Xaawo")
 pastoral <- input_data |>
@@ -62,7 +58,7 @@ pastoral <- input_data |>
   mutate(district = recode(district, !!!setNames(correct_p, wrong_p))) |>
   pull(district)
 
-#### Agropastoral ----
+##### Agropastoral ----
 wrong_ap <- c("Belet_Weyne", "Ceel_Buur", "Bulo_Burto", "Ceel_Dheere", "Buur_Hakaba", "Saakow/Salagle")
 correct_ap <- c("Belet Weyne", "Ceel Buur", "Bulo Burto", "Ceel Dheere", "Buur Hakaba", "Saakow")
 agropastoral <- input_data |>
@@ -71,20 +67,20 @@ agropastoral <- input_data |>
   mutate(district = recode(district, !!!setNames(correct_ap, wrong_ap))) |>
   pull(district)
 
-#### Riverine ----
+##### Riverine ----
 riverine <- input_data |>
   select(district, lsystems) |>
   filter(lsystems == "Riverine") |>
   pull(district)
 
-#### Urban/IDPs ----
+##### Urban/IDPs ----
 urban_idps <- input_data |>
   select(district, lsystems) |>
   filter(lsystems == "Urban/IDPs") |>
   pull(district)
 
 
-### ----------------------- Create a vector of livelihood system categories ----
+#### Create a vector of livelihood system categories ----
 somalia <- somalia |>
   mutate(
     lsystem = case_when(
@@ -95,12 +91,12 @@ somalia <- somalia |>
     )
   )
 
-### -------------------------------------------- Create regional boundaries ----
+#### Create regional boundaries ----
 regions <- somalia |>
   group_by(ADM1_EN) |>
   summarise(geometry = st_union(geometry))
 
-### ------------------------------------------------- Livelihood system map ----
+#### Livelihood system map ----
 map_lsystems <- somalia |>
   ggplot() +
   geom_sf(
@@ -121,3 +117,5 @@ map_lsystems <- somalia |>
     legend.position = "right",
     plot.title = element_text(size = 14, face = "bold")
   )
+
+# ============================== End of workflow ===============================

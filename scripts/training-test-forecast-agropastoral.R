@@ -1,13 +1,10 @@
-################################################################################
-#       TRAIN, TEST MODEL AND FORECAST - AGROPASTORAL LIVELIHOOD SYSTEM        #
-################################################################################
-
+# ==============================================================================
+#       TRAIN, TEST MODEL AND FORECAST - AGROPASTORAL LIVELIHOOD SYSTEM        
+# ==============================================================================
 
 ## ---- Check assumptions for stationarity and select candidate models ---------
 
-### ----------------------------------- ACF plot of the original admissions ----
-
-
+### ACF plot of the original admissions ----
 grouped_admissions |>
   filter(lsystems == "Agropastoral") |>
   ACF(
@@ -28,8 +25,9 @@ grouped_admissions |>
     axis.title.x = element_text(size = 10, margin = margin(r = 5))
   )
 
-### --------------------- Apply seasonal differencing using training dataset ---
+## ---- Apply seasonal differencing using training dataset --------------------
 
+### Differencing ----
 train_data_agropasto |>
   mutate(
     .admissions = do.call(
@@ -48,9 +46,7 @@ train_data_agropasto |>
     plot.subtitle = element_text(colour = "#706E6D")
   )
 
-
-### ---------------------------------------------------- ACF and PACF plots ----
-
+### ACF and PACF plots ----
 train_data_agropasto |>
   mutate(
     .admissions = do.call(
@@ -64,8 +60,7 @@ train_data_agropasto |>
 # Candidate models selected based on ACF (MA) and PACF (AR):
 # ARIMA(0,1,0)(0,1,0)[12]
 
-### ------------------------------ Test if the time series is a white noise ----
-
+### Test if the time series is a white noise ----
 train_data_agropasto |>
   mutate(
     .admissions = do.call(
@@ -76,8 +71,9 @@ train_data_agropasto |>
   features(.var = .admissions, ljung_box, lag = 10)
 
 
-## ---- Fit a Seasonal ARIMA model ---------------------------------------------
+## ---- Fit a forecasting model ------------------------------------------------
 
+### Seasonal ARIMA model ----
 fit_agropasto <- train_data_agropasto |>
   model(
     sets = ETS(
@@ -91,24 +87,19 @@ fit_agropasto <- train_data_agropasto |>
     )
   )
 
-
-### ----------------------- Identify the best model-fit amongst the others -----
-
+### Identify the best model-fit amongst the others -----
 glance(fit_agropasto) |>
   arrange(AICc) |>
   select(.model:BIC)
 
 # .model arima010011 had the lowest AICc - best model.
 
-### -------------------------- Diganose residuals (white noise?) using plot ----
-
+### Diganose residuals (white noise?) using plot ----
 fit_agropasto |>
   select(auto) |>
   gg_tsresiduals(lag = 36)
 
-
-### --- Diagnose residuals (white noise?) using a formal hypothesis testing ----
-
+### Diagnose residuals (white noise?) using a formal hypothesis testing ----
 fit_agropasto |>
   augment() |>
   filter(.model == "auto") |>
@@ -119,21 +110,17 @@ fit_agropasto |>
     def = 1
   )
 
-### ------------------------------- Forecast: h-steps = the test set period ----
-
+### Forecast: h-steps = the test set period ----
 forecast_agropasto <- fit_agropasto |>
   forecast(h = nrow(test_data_agropasto))
 
 
-### ------------------------------------ Evaluate in-sample forecast errors ----
-
+### Evaluate in-sample forecast errors ----
 fit_agropasto |>
   select(auto) |>
   accuracy()
 
-
-### -------------------------------- Evaluate out-of-sample forecast errors ----
-
+### Evaluate out-of-sample forecast errors ----
 forecast_agropasto |>
   filter(.model == "auto") |>
   accuracy(test_data_agropasto |> select(-sam_admissions))
@@ -141,23 +128,20 @@ forecast_agropasto |>
 
 ## ---- Refit model on full data -----------------------------------------------
 
+### Refit to get the actual forecasts ----
 fit_agropasto_full <- grouped_admissions |>
   subset(lsystems == "Agropastoral") |>
   model(
     auto = ARIMA(.admissions ~ pdq(0, 1, 1) + PDQ(0, 0, 1))
   )
 
-
-### --- Forecast future admissions cases into program: January to December 2025
-
+### Forecast future admissions cases into program: January to December 2025
 forecast_agropasto <- forecast(
   object = fit_agropasto_full,
   h = 12
 )
 
-
-### ---------- Reverse box-cox transformation to original admissions scales ----
-
+### Reverse box-cox transformation to original admissions scales ----
 forecast_agropasto <- forecast_agropasto |>
   hilo(level = c(80, 95)) |>
   unpack_hilo("80%") |>
@@ -173,11 +157,9 @@ forecast_agropasto <- forecast_agropasto |>
     )
   )
 
-
 ## ---- Visualize forecasts ----------------------------------------------------
 
-### ------------------------------------------------------------- Tidy data ----
-
+### Tidy data ----
 forecast_agropasto <- forecast_agropasto |>
   pivot_longer(
     cols = c(`80%_lower`, `80%_upper`, `95%_lower`, `95%_upper`),
@@ -194,9 +176,7 @@ forecast_agropasto <- forecast_agropasto |>
     values_from = value
   )
 
-
-### ------------------------------------------------------ Plot forecasts ----
-
+### Plot forecasts ----
 forecast_agropasto |>
   ggplot() +
   geom_ribbon(
@@ -245,4 +225,4 @@ forecast_agropasto |>
     legend.text = element_text(size = 8)
   )
 
-################################ End of workflow ###############################
+# ============================== End of workflow ===============================
