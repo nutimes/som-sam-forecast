@@ -1,8 +1,6 @@
 ---
-title: "What if IPC PIN Estimates Captured Their Temporal Evolution Instead of Offering a Static Snapshot?"
-subtitle: "How This Could Help Nutrition Actors Respond More Effectively"
-author: "Tomás Zaba"
-date: today
+title: "What if IPC PINs moved with the months?"
+subtitle: "Helping nutrition actors respond more effectively to changing needs"
 format: revealjs
 ---
 
@@ -12,28 +10,33 @@ Sys.setenv(path_secret_key = "~/.ssh/id_rsa")
 source(file = "script.R")
 ```
 
-## Context
+## Context {.smaller}
 
 <br> 
 
-+ To prevent that a child dies from AMN, anticipdated information on the evolution of AMN is essential
++ To prevent that a child dies from AMN, actionable information on the evolution of AMN is essential to inform decision-making
 
-+ Current approaches - (NxPxK) and now programme-based - do not provide such information
++ Current approaches for estimating people (children) in need (of treatment due to acute malnutrition): 
+  - Using the "NxPxK" formulae
+  - Programme-based data, as in 
 
-    - Not even possible to provide # cases by month, quarters, etc.
+Do not provide such information ❌
 
 ::: {.callout-note}
 
-Recently, IPC users and decision-makers criticized the fact that IPC estimates were not sensitive to the changes forecasted in the projection period.
+Recently, following the April analysis for Gaza, Nutrition Cluster and Food Security partners — along with decision-makers more broadly — criticised the fact that IPC AMN estimates did not reflect the changes projected.
+
+  + Despite an anticipated deterioration in the acute malnutrition situation over the coming months, the AMN PIN remained unchanged.
 
 :::
 
-# What if all this could be addressed, eventually? 🧐
+# What if all this could be addressed? 🧐 {.smaller}
 
-# Insights from a time series forecasting model using Somalia's six years of admissions data {.smaller}
+# Insights from a time series forecasting model using Somalia's six years of severe acute malnutrition admission data {.smaller}
 
 ## Pastoral Livelihood System (1/2)
 ### Time plot
+
 ```{r}
 #| label: forecast-pasto
 forecast_pasto_plot
@@ -224,32 +227,121 @@ forecast_urbanidps |>
   )
 ```
 
-# The above is just the caseload, not the actual burden or PIN... {.smaller}
+# What could IPC AMN look like if it embraced this approach? 🧐 {.smaller}
+
+## {.smaller}
 
 <br> 
 
++ The forecast model provides the following ouputs: 
+  - **A forecast mean value**: the point forecast
+  - **Lower and Upper value of the confidence intervals** 
+
++ These are not the actual PIN
+
+ - It can be gotten by applying the formulae: 
+
 $PIN = \text{forecast} * \frac{\text{1}}{\text{programme coverage}}$
 
+<br> 
 
++ **where**:  
 
-## Advantages and Disadvantages {.smaller}
+  - *forecast* is the point forecast  
+  - *programme coverage* is the Nutriton Cluster-based value (%) used to ascertain the programme reach based on available resources
+
++ This would yield into 👉 
+
+## A glance at the forecasted values {.smaller}
+
+```{r}
+#| label: how-to-get-pin
+x <- forecast_pasto |> 
+  select(lsystems, month = Monthly, mean_inv, level, lower, upper) |> 
+  subset(level == "80%") |> 
+  mutate(
+    forecasts = round(mean_inv, 0),
+    lower = round(lower),
+    upper = round(upper),
+    PIN = forecasts * (1/0.5) |> round(),
+    PIN_lower = lower * (1/0.5) |> round(),
+    PIN_upper = upper * (1/0.5) |> round()
+  ) |> 
+    relocate(forecasts, .before = lower) |> 
+    select(-3)
+
+x |> knitr::kable()
+```
+
+## {.smaller}
+### Then, the PIN can be split by IPC validity periods... {.smaller}
+
++ Assuming the parameters in a given analysis: **Current: January to May**; **Projection: June to December**
 
 :::: {.columns}
 
 ::: {.column width="50%" style="text-align: left"}
-### Advantages
-+ It uses programme-based-only data to estimate caseloads
-+ It provides estimates by month
-    - Makes possible to get **estimates for current** and for **projection** by taking the forecasts in the period that corresponds to current and projection, respectively
-+ Useful for fundraising, and to scale-up programme response for when a rise is expected
-+ Useful for risk monitoring
+
+**Current: January to May 2025**
+```{r}
+#| label: pin-ipc-current
+current <- x |> 
+  subset(month < yearmonth("2025 June")) |> 
+  select(month, PIN, PIN_lower, PIN_upper)
+
+current |> 
+  knitr::kable()
+```
+
++ **Total PIN in Current: `r format(sum(current$PIN), big.mark = ",", scientific = FALSE)`**
 :::
 
-::: {.column}
-### Disadvantages
-+ The model used does not account for incoming shocks, but there are other models to be explored
+::: {.column style="text-align: right"}
+**Projection: June to December 2025**
+```{r}
+#| label: pin-ipc-projection
+proje <- x |> 
+  subset(month >= yearmonth("2025 June")) |> 
+  select(month, PIN, PIN_lower, PIN_upper)
+
+proje |> 
+  knitr::kable()
+```
+
++ **Total PIN in Projection: `r format(sum(proje$PIN), big.mark = ",", scientific = FALSE)`**
 :::
 
-:::: 
+::::
+
+<br>
+
+
+## {.smaller}
+### Accouting for changes in the projection analysis...
+
+* With the point forecasts and upper and lower levels of the confidence intervals...
+
+  + In areas in which: 
+    - a **deterioration** is expected: the upper limit of the forecast could be used
+    - an **improvement** is expected: the lower limit of the forecast could be used
+    - **neither of the above is expected** (similar): the point forecast could be used
+
+::: {.callout}
+This would help balancing the PIN, and eventually a breakthrough to what we do now, and a fix the current, and outstanding, issue: one number for the whole year.
+
+  + Possibly, a fix to revising the PIN in projection updates
+  + Useful for fundraising, and to scale-up programme response for when a rise is expected
+  + Useful for risk monitoring
+
+:::
+
+
+# Is this forecasting approach user-friendly enough?
+
+ + NO! It is technically demanding...
+
+# Could it be automated — or at least semi-automated? 
+
++ ABSOLUTELY!
 
 # How are you processing all of this? 🤨 🧐

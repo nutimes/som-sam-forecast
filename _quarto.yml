@@ -19,3 +19,7 @@ format:
      fig-responsive: true
      transition: fade
      css: styles-revealjs.css
+
+author: "Tomás Zaba"
+date: today
+date-format: "DD MMMM YYYY"
