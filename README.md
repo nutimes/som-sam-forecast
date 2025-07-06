@@ -4,31 +4,34 @@
 
 ## A time series-based forecast
 
-Severe acute malnutrition can lead to death when untreated. Its timely
-identification and treatment are essential to prevent a fatal outcome.
-To that end, it is paramount to have early information on its future
-evolution, in order to inform evidence-based and strategic
-decision-making. Current (and traditional) approaches for estimating
-programme caseload, though they provide information on the expected
-caseload over 12 months (usually, based on the *NxPxKxC* formula), they
+Severe acute malnutrition (SAM) can lead to death when untreated. Its
+timely identification and treatment is essential to prevent that fatal
+outcome. To that end, it is paramount to have an early information on
+its future evolution, in order to inform evidence-based and strategic
+decision-making.
+
+Current (and traditional) approaches for estimating programme caseload,
 do not provide useful and actionable insights on the variation of the
-estimated caseloads across the months by showing its trend and seasonal
-variation (if existent), limiting, therefore, the ability of programme
-managers to strategic decision for times during the year when cases are
-expected to rise or fall.
+estimated caseloads across months, by showing its trend and seasonal
+variation (if existent). The alluded approaches are limited to provide a
+one-year-and-static information on the expected caseload. This limits
+the ability of programme managers to take strategic decision for times
+during the year when cases are expected to rise or fall.
 
 In this repo, I try to address this gap by forecasting the SAM caseload
 in Somalia between January and December 2025, based on the information
 available in the historical SAM admissions from the past 72 months (5
 years). The model does not try to account for new external inputs
-(dynamic or adaptative forecasting) or find any drivers (explanatory
+(dynamic or adaptive forecasting) or to find any drivers (explanatory
 forecasting). This is a pure time series model.
 
-Forecasts are done for a horizon of 12 months, as of January 2025, and
-they are split into the four main Somalia livelihood systems. A glance
-at the forecasted SAM cases in one livelihood system is shown below:
+Forecasts were done for a horizon of 12 months, from January to December
+2025, and they are split into the four main Somalia livelihood systems.
+A glance at the forecasted SAM cases in one livelihood system is shown
+below:
 
-![](data-raw/forecast.jpeg)
+![A glance at the observed admissions, model performance and 12-months
+forecast](data-raw/forecast.jpeg)
 
 The above results seem to provide actionable insights for anticipatory
 action, which could include resource mobilization and scaling up of
@@ -69,7 +72,7 @@ file found in the root directory.
 
 ## Reproducibility information
 
-The repository was created in `R` version 4.5.0 This project uses the
+The repository was created in `R` version 4.5.1 This project uses the
 `{renv}` framework to record `R` package dependencies and versions.
 Packages and versions used are recorded in `renv.lock` and code used to
 manage dependencies is in `renv/` and other files in the root project

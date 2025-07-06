@@ -5,7 +5,8 @@
 reports/*.html
 reports/report_files
 .quarto/
-.quarto/project-cache
+.quarto/project-cache/deno-kv-file
 
 ## README html
 README.html
+/.quarto/
